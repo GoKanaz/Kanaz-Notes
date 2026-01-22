@@ -23,8 +23,8 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         templates = repository.templates.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     }
 
-    val filteredNotes = combine(notes, _searchQuery) { notes, query ->
-        if (query.isEmpty()) notes else notes.filter {
+    val filteredNotes = combine(notes, _searchQuery) { notesList, query ->
+        if (query.isEmpty()) notesList else notesList.filter {
             it.title.contains(query, ignoreCase = true) || it.content.contains(query, ignoreCase = true)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

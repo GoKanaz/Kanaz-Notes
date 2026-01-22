@@ -1,23 +1,18 @@
 package com.gokanaz.kanaznotes.data.repository
 
-import com.tencent.mmkv.MMKV
+import com.gokanaz.kanaznotes.data.local.NoteDao
+import com.gokanaz.kanaznotes.data.local.NoteEntity
+import kotlinx.coroutines.flow.Flow
 
-class NoteRepository {
-    private val kv: MMKV = MMKV.defaultMMKV()
+class NoteRepository(private val noteDao: NoteDao) {
+    val allNotes: Flow<List<NoteEntity>> = noteDao.getAllNotes()
+    val templates: Flow<List<NoteEntity>> = noteDao.getTemplates()
 
-    fun saveNote(id: String, content: String) {
-        kv.encode(id, content)
+    suspend fun insertNote(note: NoteEntity) {
+        noteDao.insertNote(note)
     }
 
-    fun getNote(id: String): String? {
-        return kv.decodeString(id)
-    }
-
-    fun deleteNote(id: String) {
-        kv.removeValueForKey(id)
-    }
-
-    fun getAllNotes(keys: List<String>): Map<String, String?> {
-        return keys.associateWith { kv.decodeString(it) }
+    suspend fun deleteNote(note: NoteEntity) {
+        noteDao.deleteNote(note)
     }
 }
