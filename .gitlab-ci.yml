@@ -1,0 +1,37 @@
+image: gradle:8.5-jdk17
+stages:
+  - build
+  - test
+  - docker
+  - release
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+build-job:
+  stage: build
+  script:
+    - ./gradlew clean assembleDebug
+  artifacts:
+    paths:
+      - app/build/outputs/apk/debug/app-debug.apk
+test-job:
+  stage: test
+  script:
+    - ./gradlew test
+  artifacts:
+    when: always
+    paths:
+      - app/build/reports/tests/testDebugUnitTest
+docker-build:
+  stage: docker
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t registry.gitlab.com/username/kanaz-notes:$CI_COMMIT_SHA .
+    - docker push registry.gitlab.com/username/kanaz-notes:$CI_COMMIT_SHA
+release-job:
+  stage: release
+  script:
+    - curl --header "PRIVATE-TOKEN: $CI_JOB_TOKEN"            --data "name=Release-$CI_COMMIT_SHORT_SHA"            --data "tag_name=$CI_COMMIT_SHORT_SHA"            --data "description=Automated release for commit $CI_COMMIT_SHA"            --data "assets[links][][name]=app-debug.apk"            --data "assets[links][][url]=$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/file/app/build/outputs/apk/debug/app-debug.apk"            "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
+  only:
+    - main
