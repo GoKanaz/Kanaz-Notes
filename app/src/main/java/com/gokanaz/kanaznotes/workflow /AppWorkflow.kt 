@@ -1,0 +1,109 @@
+package com.gokanaz.kanaznotes.workflow
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gokanaz.kanaznotes.data.model.NoteAction
+import com.gokanaz.kanaznotes.data.model.WorkflowState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+
+class AppWorkflow : ViewModel() {
+    
+    private val _workflowState = MutableStateFlow(WorkflowState.IDLE)
+    val workflowState: StateFlow<WorkflowState> = _workflowState
+    
+    private val _currentAction = MutableStateFlow<NoteAction?>(null)
+    val currentAction: StateFlow<NoteAction?> = _currentAction
+    
+    fun startCreateNoteWorkflow() {
+        viewModelScope.launch {
+            _workflowState.value = WorkflowState.IDLE
+            _workflowState.value = WorkflowState.CREATING_NOTE
+            _currentAction.value = NoteAction.CREATE
+            
+            _workflowState.value = WorkflowState.EDITING_NOTE
+        }
+    }
+    
+    fun startEditWorkflow(noteId: Int) {
+        viewModelScope.launch {
+            _workflowState.value = WorkflowState.LOADING_NOTE
+            _currentAction.value = NoteAction.EDIT
+            
+            _workflowState.value = WorkflowState.EDITING_NOTE
+        }
+    }
+    
+    fun startAIEnhancementWorkflow(
+        noteId: Int,
+        action: String,
+        prompt: String
+    ) {
+        viewModelScope.launch {
+            _workflowState.value = WorkflowState.AI_PROCESSING
+            _currentAction.value = NoteAction.AI_ENHANCE
+            
+            _workflowState.value = WorkflowState.AI_COMPLETED
+        }
+    }
+    
+    fun startBatchProcessingWorkflow(noteIds: List<Int>) {
+        viewModelScope.launch {
+            _workflowState.value = WorkflowState.BATCH_PROCESSING
+            
+            noteIds.forEachIndexed { index, noteId ->
+                _workflowState.value = WorkflowState.BATCH_PROGRESS(
+                    progress = (index + 1).toFloat() / noteIds.size
+                )
+            }
+            
+            _workflowState.value = WorkflowState.BATCH_COMPLETED
+        }
+    }
+    
+    fun startExportWorkflow(noteId: Int, format: String) {
+        viewModelScope.launch {
+            _workflowState.value = WorkflowState.EXPORTING
+            
+            _workflowState.value = WorkflowState.EXPORT_COMPLETED
+        }
+    }
+    
+    fun resetWorkflow() {
+        _workflowState.value = WorkflowState.IDLE
+        _currentAction.value = null
+    }
+}
+
+data class WorkflowState(
+    val state: String,
+    val progress: Float = 0f,
+    val message: String? = null
+) {
+    companion object {
+        val IDLE = WorkflowState("IDLE")
+        val LOADING_NOTE = WorkflowState("LOADING_NOTE")
+        val CREATING_NOTE = WorkflowState("CREATING_NOTE")
+        val EDITING_NOTE = WorkflowState("EDITING_NOTE")
+        val AI_PROCESSING = WorkflowState("AI_PROCESSING")
+        val AI_COMPLETED = WorkflowState("AI_COMPLETED", 1f)
+        val BATCH_PROCESSING = WorkflowState("BATCH_PROCESSING")
+        val BATCH_PROGRESS = fun(progress: Float) = 
+            WorkflowState("BATCH_PROGRESS", progress, "Processing...")
+        val BATCH_COMPLETED = WorkflowState("BATCH_COMPLETED", 1f)
+        val EXPORTING = WorkflowState("EXPORTING")
+        val EXPORT_COMPLETED = WorkflowState("EXPORT_COMPLETED", 1f)
+        val ERROR = fun(message: String) = WorkflowState("ERROR", 0f, message)
+    }
+}
+
+enum class NoteAction {
+    CREATE,
+    EDIT,
+    DELETE,
+    SHARE,
+    AI_ENHANCE,
+    BATCH_PROCESS,
+    EXPORT
+}

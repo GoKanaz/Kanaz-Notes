@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<workflow-config xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <ai-workflow name="summarize">
+        <step id="1" name="prepare" timeout="5000"/>
+        <step id="2" name="api_call" timeout="15000"/>
+        <step id="3" name="process_response" timeout="5000"/>
+        <step id="4" name="update_note" timeout="3000"/>
+    </ai-workflow>
+    
+    <ai-workflow name="improve">
+        <step id="1" name="prepare" timeout="5000"/>
+        <step id="2" name="grammar_check" timeout="10000"/>
+        <step id="3" name="style_enhance" timeout="10000"/>
+        <step id="4" name="finalize" timeout="5000"/>
+    </ai-workflow>
+    
+    <batch-workflow name="process_multiple">
+        <step id="1" name="prepare_batch" timeout="10000"/>
+        <step id="2" name="process_each" timeout="30000"/>
+        <step id="3" name="aggregate_results" timeout="10000"/>
+        <step id="4" name="save_all" timeout="15000"/>
+    </batch-workflow>
+    
+    <export-workflow name="export_pdf">
+        <step id="1" name="prepare_content" timeout="5000"/>
+        <step id="2" name="generate_pdf" timeout="15000"/>
+        <step id="3" name="save_file" timeout="5000"/>
+        <step id="4" name="create_share" timeout="3000"/>
+    </export-workflow>
+    
+</workflow-config>

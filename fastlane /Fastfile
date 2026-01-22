@@ -1,0 +1,34 @@
+default_platform(:android)
+
+platform :android do
+  desc "Deploy to Google Play Store"
+  lane :deploy do
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      properties: {
+        "android.injected.testOnly" => "false"
+      }
+    )
+    
+    upload_to_play_store(
+      track: 'production',
+      aab: 'app/build/outputs/bundle/release/app-release.aab',
+      rollout: '0.5' # 50% staged rollout
+    )
+  end
+  
+  desc "Build and deploy to internal testing"
+  lane :internal do
+    gradle(task: "assembleRelease")
+    upload_to_play_store(
+      track: 'internal',
+      apk: 'app/build/outputs/apk/release/app-release.apk'
+    )
+  end
+  
+  desc "Run tests"
+  lane :test do
+    gradle(task: "test")
+  end
+end

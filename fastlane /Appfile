@@ -1,0 +1,2 @@
+json_key_file("google-play-key.json") # Path to your JSON key file
+package_name("com.gokanaz.kanaznotes")

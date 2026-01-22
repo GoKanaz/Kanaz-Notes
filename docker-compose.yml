@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  android-builder:
+    build: .
+    volumes:
+      - .:/app
+      - ~/.gradle:/root/.gradle
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    command: ./gradlew assembleDebug
+    
+  test-runner:
+    build: .
+    command: ./gradlew test
+    volumes:
+      - .:/app
+      - ~/.gradle:/root/.gradle
+      
+  emulator:
+    image: budtmo/docker-android-x86-11.0
+    privileged: true
+    environment:
+      - DEVICE=Nexus 5
+      - APPIUM=true
+    volumes:
+      - ./app/build/outputs/apk:/root/tmp
+    ports:
+      - "6080:6080"
+      - "5554:5554"
+      - "5555:5555"
