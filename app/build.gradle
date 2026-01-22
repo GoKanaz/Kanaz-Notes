@@ -37,7 +37,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion project.compose.compiler.version
+        kotlinCompilerExtensionVersion = project.findProperty("compose.compiler.version") ?: "1.5.11"
     }
 
     packagingOptions {
