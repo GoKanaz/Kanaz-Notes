@@ -56,3 +56,6 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
+dependencies {
+    implementation("com.google.android.material:material:1.11.0")
+}
