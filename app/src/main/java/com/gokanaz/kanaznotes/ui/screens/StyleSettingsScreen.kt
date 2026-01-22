@@ -1,33 +1,49 @@
 package com.gokanaz.kanaznotes.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Brush
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StyleSettingsScreen(
-    onApplyBrush: () -> Unit
-) {
-    Scaffold { padding ->
+fun StyleSettingsScreen(navController: NavController) {
+    val gradientBrush = Brush.verticalGradient(
+        colors = listOf(Color.Blue, Color.Cyan)
+    )
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Style Settings") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            Button(
-                onClick = onApplyBrush,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(imageVector = Icons.Filled.Brush, contentDescription = "Brush")
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Apply Brush Style")
-            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .background(gradientBrush)
+            )
+            Text("Preview Gradient Style", modifier = Modifier.padding(top = 8.dp))
         }
     }
 }
