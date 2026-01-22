@@ -12,22 +12,22 @@ gson = "2.10.1"
 
 [libraries]
 core-ktx = "androidx.core:core-ktx:1.12.0"
-lifecycle-runtime-ktx = "androidx.lifecycle:lifecycle-runtime-ktx:{lifecycle}"
-activity-compose = "androidx.activity:activity-compose:{activity-compose}"
-navigation-compose = "androidx.navigation:navigation-compose:{navigation}"
-datastore-preferences = "androidx.datastore:datastore-preferences:{datastore}"
+lifecycle-runtime-ktx = "androidx.lifecycle:lifecycle-runtime-ktx:2.7.0"
+activity-compose = "androidx.activity:activity-compose:1.8.2"
+navigation-compose = "androidx.navigation:navigation-compose:2.7.7"
+datastore-preferences = "androidx.datastore:datastore-preferences:1.0.0"
 
-compose-ui = "androidx.compose.ui:ui"
-compose-graphics = "androidx.compose.ui:ui-graphics"
-compose-tooling-preview = "androidx.compose.ui:ui-tooling-preview"
-compose-material3 = "androidx.compose.material3:material3"
+compose-ui.module = "androidx.compose.ui:ui"
+compose-graphics.module = "androidx.compose.ui:ui-graphics"
+compose-tooling-preview.module = "androidx.compose.ui:ui-tooling-preview"
+compose-material3.module = "androidx.compose.material3:material3"
 
-room-runtime = "androidx.room:room-runtime:{room}"
-room-ktx = "androidx.room:room-ktx:{room}"
-room-compiler = "androidx.room:room-compiler:{room}"
+room-runtime = "androidx.room:room-runtime:2.6.1"
+room-ktx = "androidx.room:room-ktx:2.6.1"
+room-compiler = "androidx.room:room-compiler:2.6.1"
 
-gson = "com.google.code.gson:gson:{gson}"
-coil-compose = "io.coil-kt:coil-compose:{coil}"
+gson = "com.google.code.gson:gson:2.10.1"
+coil-compose = "io.coil-kt:coil-compose:2.5.0"
 
 [bundles]
 compose = [
