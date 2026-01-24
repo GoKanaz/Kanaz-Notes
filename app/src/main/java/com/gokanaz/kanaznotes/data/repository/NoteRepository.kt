@@ -18,10 +18,11 @@ class NoteRepository(private val noteDao: NoteDao) {
         noteDao.deleteNote(note)
     }
 
-    fun getAllNotes(): Flow<List<NoteEntity>> = noteDao.getAllNotes()
+    fun getAllNotes(): Flow<List<NoteEntity>> {
+        return noteDao.getAllNotes()
+    }
 
-    fun getTemplates(): Flow<List<NoteEntity>> = noteDao.getTemplates()
-
-    val allNotes: Flow<List<NoteEntity>> = getAllNotes()
-    val templates: Flow<List<NoteEntity>> = getTemplates()
+    fun getTemplates(): Flow<List<NoteEntity>> {
+        return noteDao.getTemplates()
+    }
 }
