@@ -3,12 +3,12 @@
     <style name="Theme.KanazNotes" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightStatusBar">false</item>
 
-        <!-- Background ikut palet -->
-        <item name="android:colorBackground">?attr/colorSurface</item>
+        <!-- Background gelap -->
+        <item name="android:colorBackground">#121212</item>
 
-        <!-- Teks adaptif -->
+        <!-- Teks putih -->
         <item name="colorOnBackground">@color/text_primary</item>
         <item name="colorOnSurface">@color/text_primary</item>
     </style>
