@@ -28,6 +28,69 @@ class SettingsViewModel : ViewModel() {
         listOf(Color(0xFFFFB74D), Color(0xFF4DB6AC), Color(0xFF7986CB))
     )
 
+    private val _dateFormat = MutableStateFlow(kv.decodeString("dateFormat", "dd/MM/yyyy") ?: "dd/MM/yyyy")
+    val dateFormat: StateFlow<String> = _dateFormat
+    fun setDateFormat(value: String) {
+        _dateFormat.value = value
+        kv.encode("dateFormat", value)
+    }
+
+    private val _textSize = MutableStateFlow(kv.decodeInt("textSize", 14))
+    val textSize: StateFlow<Int> = _textSize
+    fun setTextSize(value: Int) {
+        _textSize.value = value
+        kv.encode("textSize", value)
+    }
+
+    private val _language = MutableStateFlow(kv.decodeString("language", "en") ?: "en")
+    val language: StateFlow<String> = _language
+    fun setLanguage(value: String) {
+        _language.value = value
+        kv.encode("language", value)
+    }
+
+    private val _isSingleColumn = MutableStateFlow(kv.decodeBool("isSingleColumn", true))
+    val isSingleColumn: StateFlow<Boolean> = _isSingleColumn
+    fun setSingleColumn(value: Boolean) {
+        _isSingleColumn.value = value
+        kv.encode("isSingleColumn", value)
+    }
+
+    private val _maxLines = MutableStateFlow(kv.decodeInt("maxLines", 3))
+    val maxLines: StateFlow<Int> = _maxLines
+    fun setMaxLines(value: Int) {
+        _maxLines.value = value
+        kv.encode("maxLines", value)
+    }
+
+    private val _cardSize = MutableStateFlow(kv.decodeInt("cardSize", 1))
+    val cardSize: StateFlow<Int> = _cardSize
+    fun setCardSize(value: Int) {
+        _cardSize.value = value
+        kv.encode("cardSize", value)
+    }
+
+    private val _textOverflow = MutableStateFlow(kv.decodeBool("textOverflow", false))
+    val textOverflow: StateFlow<Boolean> = _textOverflow
+    fun setTextOverflow(value: Boolean) {
+        _textOverflow.value = value
+        kv.encode("textOverflow", value)
+    }
+
+    private val _isPasswordEnabled = MutableStateFlow(kv.decodeBool("isPasswordEnabled", false))
+    val isPasswordEnabled: StateFlow<Boolean> = _isPasswordEnabled
+    fun setPassword(value: String) {
+        kv.encode("password", value)
+        _isPasswordEnabled.value = true
+    }
+
+    private val _isScreenProtectionEnabled = MutableStateFlow(kv.decodeBool("isScreenProtectionEnabled", false))
+    val isScreenProtectionEnabled: StateFlow<Boolean> = _isScreenProtectionEnabled
+    fun setScreenProtection(value: Boolean) {
+        _isScreenProtectionEnabled.value = value
+        kv.encode("isScreenProtectionEnabled", value)
+    }
+
     fun setDarkMode(value: String) {
         _darkMode.value = value
         kv.encode("darkMode", value)
@@ -46,29 +109,5 @@ class SettingsViewModel : ViewModel() {
     fun setSelectedColorPalette(value: Int) {
         _selectedColorPalette.value = value
         kv.encode("selectedColorPalette", value)
-    }
-
-    fun saveString(key: String, value: String) {
-        kv.encode(key, value)
-    }
-
-    fun getString(key: String, default: String = ""): String {
-        return kv.decodeString(key, default) ?: default
-    }
-
-    fun saveBoolean(key: String, value: Boolean) {
-        kv.encode(key, value)
-    }
-
-    fun getBoolean(key: String, default: Boolean = false): Boolean {
-        return kv.decodeBool(key, default)
-    }
-
-    fun saveInt(key: String, value: Int) {
-        kv.encode(key, value)
-    }
-
-    fun getInt(key: String, default: Int = 0): Int {
-        return kv.decodeInt(key, default)
     }
 }
