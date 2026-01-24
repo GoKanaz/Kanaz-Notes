@@ -31,14 +31,6 @@ jobs:
       - name: Assemble Release APK
         run: ./gradlew assembleRelease --parallel --no-daemon
 
-      - name: Start Emulator & Install APK
-        run: |
-          sdkmanager --install "system-images;android-30;default;x86_64"
-          echo "no" | avdmanager create avd -n test -k "system-images;android-30;default;x86_64" --force
-          nohup emulator -avd test -no-window -no-audio &
-          adb wait-for-device
-          adb install app/build/outputs/apk/release/app-release.apk
-
       - name: Upload Release APK
         uses: actions/upload-artifact@v3
         with:
