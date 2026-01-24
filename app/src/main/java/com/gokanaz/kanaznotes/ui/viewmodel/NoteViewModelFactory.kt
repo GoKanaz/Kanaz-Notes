@@ -1,14 +1,14 @@
 package com.gokanaz.kanaznotes.ui.viewmodel
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.gokanaz.kanaznotes.data.repository.NoteRepository
 
-class NoteViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+class NoteViewModelFactory(private val repository: NoteRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NoteViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return NoteViewModel(application) as T
+            return NoteViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
