@@ -97,14 +97,19 @@ class SettingsViewModel : ViewModel() {
     private val _webdavUsername = MutableStateFlow(kv.decodeString("webdavUsername", "") ?: "")
     val webdavUsername: StateFlow<String> = _webdavUsername
 
+    private val _webdavPassword = MutableStateFlow(kv.decodeString("webdavPassword", "") ?: "")
+    val webdavPassword: StateFlow<String> = _webdavPassword
+
     private val _isSyncEnabled = MutableStateFlow(kv.decodeBool("isSyncEnabled", false))
     val isSyncEnabled: StateFlow<Boolean> = _isSyncEnabled
 
-    fun setWebDAVConfig(url: String, username: String) {
+    fun setWebDAVConfig(url: String, username: String, password: String) {
         _webdavUrl.value = url
         _webdavUsername.value = username
+        _webdavPassword.value = password
         kv.encode("webdavUrl", url)
         kv.encode("webdavUsername", username)
+        kv.encode("webdavPassword", password)
     }
 
     fun setSyncEnabled(value: Boolean) {
