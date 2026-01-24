@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             val settingsViewModel: SettingsViewModel = viewModel()
             val noteViewModel: NoteViewModel = viewModel()
             val navController = rememberNavController()
-            
+
             KanazNotesTheme(settingsViewModel = settingsViewModel) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -30,7 +30,24 @@ class MainActivity : ComponentActivity() {
                     NavGraph(
                         navController = navController,
                         noteViewModel = noteViewModel,
-                        settingsViewModel = settingsViewModel
+                        settingsViewModel = settingsViewModel,
+                        onNavigateToAddNote = {},
+                        onNavigateToEditNote = { _ -> },
+                        onNavigateToSettings = {},
+                        onNavigateToSearch = {},
+                        onLightbulb = {},
+                        onArchive = {},
+                        onHelp = {},
+                        onAgenda = {},
+                        onStyle = {},
+                        onLanguage = {},
+                        onCalendar = {},
+                        onSecurity = {},
+                        onCloudUpload = {},
+                        onCloud = {},
+                        onBack = {},
+                        onDownload = {},
+                        onUpload = {}
                     )
                 }
             }
