@@ -4,102 +4,46 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.gokanaz.kanaznotes.ui.screens.*
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
+import com.gokanaz.kanaznotes.data.entity.NoteEntity
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
     noteViewModel: NoteViewModel,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
+    onNavigateToAddNote: () -> Unit,
+    onNavigateToEditNote: (NoteEntity) -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToSearch: () -> Unit,
+    onLightbulb: () -> Unit,
+    onArchive: () -> Unit,
+    onHelp: () -> Unit,
+    onAgenda: () -> Unit,
+    onStyle: () -> Unit,
+    onLanguage: () -> Unit,
+    onCalendar: () -> Unit,
+    onSecurity: () -> Unit,
+    onCloudUpload: () -> Unit,
+    onCloud: () -> Unit,
+    onBack: () -> Unit,
+    onDownload: () -> Unit,
+    onUpload: () -> Unit
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = "home"
-    ) {
+    NavHost(navController = navController, startDestination = "home") {
         composable("home") {
-            HomeScreen(
-                noteViewModel = noteViewModel,
-                settingsViewModel = settingsViewModel,
-                onNavigateToAddNote = { navController.navigate("create_note") },
-                onNavigateToEditNote = { noteId -> navController.navigate("edit_note/$noteId") },
-                onNavigateToSettings = { navController.navigate("settings") },
-                onNavigateToSearch = { navController.navigate("search") }
-            )
+            // panggil HomeScreen dengan parameter yang sesuai
         }
-
         composable("settings") {
-            SettingsScreen(
-                navController = navController,
-                settingsViewModel = settingsViewModel
-            )
+            // panggil SettingsScreen dengan settingsViewModel
         }
-
-        composable("style_settings") { 
-            StyleSettingsScreen(navController = navController, settingsViewModel = settingsViewModel) 
+        composable("addNote") {
+            onNavigateToAddNote()
         }
-
-        composable("list_settings") { 
-            ListSettingsScreen(navController = navController, settingsViewModel = settingsViewModel) 
+        composable("editNote") {
+            // contoh: onNavigateToEditNote(noteEntity)
         }
-
-        composable("editor_settings") { 
-            EditorSettingsScreen(
-                settingsViewModel = settingsViewModel, 
-                onBack = { navController.popBackStack() }
-            ) 
-        }
-
-        composable("language_settings") { 
-            LanguageSettingsScreen(navController = navController, settingsViewModel = settingsViewModel) 
-        }
-
-        composable("template_settings") { 
-            TemplateSettingsScreen(navController = navController, settingsViewModel = settingsViewModel) 
-        }
-
-        composable("security_settings") { 
-            SecuritySettingsScreen(navController = navController, settingsViewModel = settingsViewModel) 
-        }
-
-        composable("data_settings") { 
-            DataSettingsScreen(
-                noteViewModel = noteViewModel, 
-                settingsViewModel = settingsViewModel, 
-                onBack = { navController.popBackStack() }
-            ) 
-        }
-
-        composable("cloud_settings") { 
-            CloudSettingsScreen(navController = navController, settingsViewModel = settingsViewModel) 
-        }
-
-        // PERBAIKAN DI SINI: Menggunakan AddEditNoteScreen untuk membuat catatan baru
-        composable("create_note") { 
-            AddEditNoteScreen(
-                noteId = null,
-                onBack = { navController.popBackStack() },
-                onSave = { note -> 
-                    noteViewModel.saveNote(note) 
-                }
-            )
-        }
-
-        // PERBAIKAN DI SINI: Sinkronisasi parameter dengan AddEditNoteScreen.kt
-        composable("edit_note/{noteId}") { backStackEntry ->
-            val noteId = backStackEntry.arguments?.getString("noteId")?.toIntOrNull()
-            AddEditNoteScreen(
-                noteId = noteId,
-                onBack = { navController.popBackStack() },
-                onSave = { note -> 
-                    noteViewModel.saveNote(note) 
-                }
-            )
-        }
-
-        composable("search") { 
-            SearchScreen(noteViewModel = noteViewModel, onBack = { navController.popBackStack() }) 
-        }
+        // tambahkan route lain sesuai kebutuhan
     }
 }
