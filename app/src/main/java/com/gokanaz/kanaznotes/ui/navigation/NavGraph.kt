@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
-import com.gokanaz.kanaznotes.data.entity.NoteEntity
+import com.gokanaz.kanaznotes.data.local.NoteEntity
 
 @Composable
 fun NavGraph(
@@ -33,17 +33,10 @@ fun NavGraph(
 ) {
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
-            // panggil HomeScreen dengan parameter yang sesuai
+            // isi screen home
         }
         composable("settings") {
-            // panggil SettingsScreen dengan settingsViewModel
+            // isi screen settings
         }
-        composable("addNote") {
-            onNavigateToAddNote()
-        }
-        composable("editNote") {
-            // contoh: onNavigateToEditNote(noteEntity)
-        }
-        // tambahkan route lain sesuai kebutuhan
     }
 }
