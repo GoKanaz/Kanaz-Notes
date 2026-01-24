@@ -10,7 +10,12 @@ import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 fun CreateNoteScreen(noteViewModel: NoteViewModel) {
     Column {
         Text(text = "Create Note")
-        val note = NoteEntity(id = 0, title = "New Note", content = "Content")
+        val note = NoteEntity(
+            id = 0,
+            title = "New Note",
+            content = "Content",
+            timestamp = System.currentTimeMillis()
+        )
         noteViewModel.insertNote(note)
     }
 }
