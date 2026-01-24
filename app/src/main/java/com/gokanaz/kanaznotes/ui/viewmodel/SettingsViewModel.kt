@@ -91,6 +91,27 @@ class SettingsViewModel : ViewModel() {
         kv.encode("isScreenProtectionEnabled", value)
     }
 
+    private val _webdavUrl = MutableStateFlow(kv.decodeString("webdavUrl", "") ?: "")
+    val webdavUrl: StateFlow<String> = _webdavUrl
+
+    private val _webdavUsername = MutableStateFlow(kv.decodeString("webdavUsername", "") ?: "")
+    val webdavUsername: StateFlow<String> = _webdavUsername
+
+    private val _isSyncEnabled = MutableStateFlow(kv.decodeBool("isSyncEnabled", false))
+    val isSyncEnabled: StateFlow<Boolean> = _isSyncEnabled
+
+    fun setWebDAVConfig(url: String, username: String) {
+        _webdavUrl.value = url
+        _webdavUsername.value = username
+        kv.encode("webdavUrl", url)
+        kv.encode("webdavUsername", username)
+    }
+
+    fun setSyncEnabled(value: Boolean) {
+        _isSyncEnabled.value = value
+        kv.encode("isSyncEnabled", value)
+    }
+
     fun setDarkMode(value: String) {
         _darkMode.value = value
         kv.encode("darkMode", value)
