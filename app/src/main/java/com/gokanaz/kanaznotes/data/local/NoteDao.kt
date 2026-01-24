@@ -11,6 +11,9 @@ interface NoteDao {
     @Update
     suspend fun updateNote(note: NoteEntity)
 
+    @Delete
+    suspend fun deleteNote(note: NoteEntity)
+
     @Query("SELECT * FROM notes_table WHERE isDeleted = 0 AND isTemplate = 0 ORDER BY isPinned DESC, id DESC")
     fun getAllNotes(): Flow<List<NoteEntity>>
 

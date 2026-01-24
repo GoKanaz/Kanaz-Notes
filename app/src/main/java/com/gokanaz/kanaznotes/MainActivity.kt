@@ -13,6 +13,7 @@ import com.gokanaz.kanaznotes.ui.theme.KanazNotesTheme
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.ui.navigation.NavGraph
+import com.gokanaz.kanaznotes.data.local.NoteEntity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
                         noteViewModel = noteViewModel,
                         settingsViewModel = settingsViewModel,
                         onNavigateToAddNote = {},
-                        onNavigateToEditNote = { _ -> },
+                        onNavigateToEditNote = { _: NoteEntity -> },
                         onNavigateToSettings = {},
                         onNavigateToSearch = {},
                         onLightbulb = {},
