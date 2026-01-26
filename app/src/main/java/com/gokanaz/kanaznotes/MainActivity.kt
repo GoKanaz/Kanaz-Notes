@@ -14,10 +14,14 @@ import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.ui.navigation.NavGraph
 import com.gokanaz.kanaznotes.data.local.NoteEntity
+import com.tencent.mmkv.MMKV
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        MMKV.initialize(this)
+        
         setContent {
             val settingsViewModel: SettingsViewModel = viewModel()
             val noteViewModel: NoteViewModel = viewModel()
