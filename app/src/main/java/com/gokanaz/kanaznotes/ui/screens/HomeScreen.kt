@@ -1,6 +1,7 @@
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -36,7 +37,7 @@ val noteColors = listOf(
     Color(0xFFE0F7FA)
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     noteViewModel: NoteViewModel,
@@ -322,6 +323,7 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteCard(
     note: NoteEntity,
@@ -396,4 +398,3 @@ fun NoteCard(
         }
     }
 }
-
