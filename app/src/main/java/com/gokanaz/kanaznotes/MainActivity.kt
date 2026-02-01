@@ -9,14 +9,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.gokanaz.kanaznotes.data.local.NoteDatabase
+import com.gokanaz.kanaznotes.data.repository.NoteRepository
+import com.gokanaz.kanaznotes.ui.navigation.NavGraph
 import com.gokanaz.kanaznotes.ui.theme.KanazNotesTheme
-import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModelFactory
-import com.gokanaz.kanaznotes.ui.navigation.NavGraph
-import com.gokanaz.kanaznotes.data.local.NoteDatabase
-import com.gokanaz.kanaznotes.data.local.NoteEntity
-import com.gokanaz.kanaznotes.data.repository.NoteRepository
+import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 import com.tencent.mmkv.MMKV
 
 class MainActivity : ComponentActivity() {
@@ -42,24 +41,7 @@ class MainActivity : ComponentActivity() {
                     NavGraph(
                         navController = navController,
                         noteViewModel = noteViewModel,
-                        settingsViewModel = settingsViewModel,
-                        onNavigateToAddNote = {},
-                        onNavigateToEditNote = { _: NoteEntity -> },
-                        onNavigateToSettings = {},
-                        onNavigateToSearch = {},
-                        onLightbulb = {},
-                        onArchive = {},
-                        onHelp = {},
-                        onAgenda = {},
-                        onStyle = {},
-                        onLanguage = {},
-                        onCalendar = {},
-                        onSecurity = {},
-                        onCloudUpload = {},
-                        onCloud = {},
-                        onBack = {},
-                        onDownload = {},
-                        onUpload = {}
+                        settingsViewModel = settingsViewModel
                     )
                 }
             }

@@ -7,52 +7,57 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageSettingsScreen(
-    navController: NavController,
+    navController: NavHostController,
     settingsViewModel: SettingsViewModel
 ) {
     val language by settingsViewModel.language.collectAsState()
-    
+
+    val languages = listOf(
+        "en" to "English",
+        "id" to "Bahasa Indonesia"
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Language") },
+                title = { Text("Bahasa") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, null)
                     }
                 }
             )
         }
     ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(16.dp)
+        ) {
             item {
-                Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Select Language", style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        listOf("en" to "English", "id" to "Bahasa Indonesia").forEach { (code, name) ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { settingsViewModel.setLanguage(code) }
-                                    .padding(vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = language == code,
-                                    onClick = { settingsViewModel.setLanguage(code) }
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = name)
+                Card {
+                    Column {
+                        languages.forEachIndexed { index, (code, name) ->
+                            ListItem(
+                                headlineContent = { Text(name) },
+                                supportingContent = { Text(code.uppercase()) },
+                                trailingContent = {
+                                    RadioButton(
+                                        selected = language == code,
+                                        onClick = { settingsViewModel.setLanguage(code) }
+                                    )
+                                },
+                                modifier = Modifier.clickable { settingsViewModel.setLanguage(code) }
+                            )
+                            if (index < languages.size - 1) {
+                                Divider(modifier = Modifier.padding(horizontal = 16.dp))
                             }
                         }
                     }

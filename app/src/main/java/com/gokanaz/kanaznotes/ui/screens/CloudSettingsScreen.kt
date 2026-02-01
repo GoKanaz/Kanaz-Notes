@@ -10,104 +10,91 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CloudSettingsScreen(
-    navController: NavController,
+    navController: NavHostController,
     settingsViewModel: SettingsViewModel
 ) {
     val webdavUrl by settingsViewModel.webdavUrl.collectAsState()
     val webdavUsername by settingsViewModel.webdavUsername.collectAsState()
     val isSyncEnabled by settingsViewModel.isSyncEnabled.collectAsState()
-    
+
     var url by remember { mutableStateOf(webdavUrl) }
     var username by remember { mutableStateOf(webdavUsername) }
     var password by remember { mutableStateOf("") }
-    
+    var saved by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Cloud Service") },
+                title = { Text("Pengaturan Cloud") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, null)
                     }
                 }
             )
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(16.dp),
+            verticalItemSpacing = 12.dp
         ) {
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("WebDAV Configuration", style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
+                Card {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("Konfigurasi WebDAV", style = MaterialTheme.typography.titleMedium)
                         OutlinedTextField(
                             value = url,
-                            onValueChange = { url = it },
-                            label = { Text("WebDAV URL") },
+                            onValueChange = { url = it; saved = false },
+                            label = { Text("URL WebDAV") },
+                            placeholder = { Text("https://example.com/webdav") },
                             modifier = Modifier.fillMaxWidth()
                         )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
                         OutlinedTextField(
                             value = username,
-                            onValueChange = { username = it },
-                            label = { Text("Username") },
+                            onValueChange = { username = it; saved = false },
+                            label = { Text("Nama Pengguna") },
                             modifier = Modifier.fillMaxWidth()
                         )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
                         OutlinedTextField(
                             value = password,
-                            onValueChange = { password = it },
-                            label = { Text("Password") },
-                            modifier = Modifier.fillMaxWidth(),
-                            visualTransformation = PasswordVisualTransformation()
-                        )
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        Button(
-                            onClick = { settingsViewModel.setWebDAVConfig(url, username, password) },
+                            onValueChange = { password = it; saved = false },
+                            label = { Text("Kata Sandi") },
+                            visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth()
+                        )
+                        Button(
+                            onClick = {
+                                settingsViewModel.setWebDAVConfig(url, username, password)
+                                saved = true
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = url.isNotBlank() && username.isNotBlank()
                         ) {
-                            Text("Save Configuration")
+                            Text(if (saved) "Tersimpan" else "Simpan Konfigurasi")
                         }
                     }
                 }
             }
-            
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                ) {
+                Card {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Sync", style = MaterialTheme.typography.titleMedium)
-                                Text("Enable automatic sync", style = MaterialTheme.typography.bodySmall)
+                                Text("Sinkronisasi Otomatis", style = MaterialTheme.typography.titleMedium)
+                                Text("Sinkronkan catatan secara berkala", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            Switch(
-                                checked = isSyncEnabled,
-                                onCheckedChange = { settingsViewModel.setSyncEnabled(it) }
-                            )
+                            Switch(checked = isSyncEnabled, onCheckedChange = { settingsViewModel.setSyncEnabled(it) })
                         }
                     }
                 }

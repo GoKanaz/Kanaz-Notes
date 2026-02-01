@@ -20,6 +20,12 @@ interface NoteDao {
     @Query("SELECT * FROM notes_table WHERE isTemplate = 1 ORDER BY id DESC")
     fun getTemplates(): Flow<List<NoteEntity>>
 
+    @Query("SELECT * FROM notes_table WHERE isDeleted = 1 ORDER BY id DESC")
+    fun getArchivedNotes(): Flow<List<NoteEntity>>
+
+    @Query("SELECT * FROM notes_table WHERE id = :id")
+    suspend fun getNoteById(id: Int): NoteEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFolder(folder: FolderEntity)
 

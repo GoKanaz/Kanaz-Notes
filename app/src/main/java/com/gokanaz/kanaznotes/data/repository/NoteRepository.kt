@@ -25,4 +25,12 @@ class NoteRepository(private val noteDao: NoteDao) {
     fun getTemplates(): Flow<List<NoteEntity>> {
         return noteDao.getTemplates()
     }
+
+    fun getArchivedNotes(): Flow<List<NoteEntity>> {
+        return noteDao.getArchivedNotes()
+    }
+
+    suspend fun getNoteById(id: Int): NoteEntity? {
+        return noteDao.getNoteById(id)
+    }
 }
