@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,19 +38,18 @@ fun AddEditNoteScreen(
     var showMoreMenu by remember { mutableStateOf(false) }
     var hasChanges by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
-    var initialized by remember { mutableStateOf(false) }
-
-    if (!initialized && existingNoteId != null) {
-        val note = noteViewModel.getNoteById(existingNoteId)
-        if (note != null) {
-            existingNote = note
-            title = note.title
-            content = note.content
-            color = note.color
-            isPinned = note.isPinned
-            isTemplate = note.isTemplate
+    LaunchedEffect(existingNoteId) {
+        if (existingNoteId != null) {
+            val note = noteViewModel.getNoteById(existingNoteId)
+            if (note != null) {
+                existingNote = note
+                title = note.title
+                content = note.content
+                color = note.color
+                isPinned = note.isPinned
+                isTemplate = note.isTemplate
+            }
         }
-        initialized = true
     }
 
     val cardColor = noteColors.getOrElse(color) { Color.White }
