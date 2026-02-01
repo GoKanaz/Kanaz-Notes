@@ -6,7 +6,6 @@ import com.gokanaz.kanaznotes.data.local.NoteEntity
 import com.gokanaz.kanaznotes.data.repository.NoteRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
 
@@ -50,9 +49,7 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         }
     }
 
-    fun getNoteById(id: Int): NoteEntity? {
-        return runBlocking {
-            repository.getNoteById(id)
-        }
+    suspend fun getNoteById(id: Int): NoteEntity? {
+        return repository.getNoteById(id)
     }
 }
