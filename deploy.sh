@@ -1,315 +1,16 @@
 #!/bin/bash
 
-# ============================================================
-# STEP 1 - Hapus file lama yang tidak diperlukan
-# ============================================================
-
-rm -f app/src/main/java/com/gokanaz/kanaznotes/ui/screens/CreateNoteScreen.kt
-rm -f app/src/main/java/com/gokanaz/kanaznotes/ui/screens/DataSettingsScreen.kt
-rm -f app/src/main/java/com/gokanaz/kanaznotes/ui/screens/EditorSettingsScreen.kt
-rm -f app/src/main/java/com/gokanaz/kanaznotes/ui/screens/ListScreen.kt
-rm -f app/src/main/java/com/gokanaz/kanaznotes/ui/screens/ListSettingsScreen.kt
-rm -f app/src/main/java/com/gokanaz/kanaznotes/ui/screens/PasswordScreen.kt
-rm -f app/src/main/java/com/gokanaz/kanaznotes/ui/screens/SecurityScreen.kt
-rm -f app/src/main/java/com/gokanaz/kanaznotes/ui/screens/StyleScreen.kt
-rm -f app/src/main/java/com/gokanaz/kanaznotes/ui/screens/TemplateSettingsScreen.kt
-rm -f app/build.gradle.kts
-
-# ============================================================
-# STEP 2 - Tulis file baru
-# ============================================================
-
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/MainActivity.kt
-package com.gokanaz.kanaznotes
-
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.rememberNavController
-import com.gokanaz.kanaznotes.data.local.NoteDatabase
-import com.gokanaz.kanaznotes.data.repository.NoteRepository
-import com.gokanaz.kanaznotes.ui.navigation.NavGraph
-import com.gokanaz.kanaznotes.ui.theme.KanazNotesTheme
-import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
-import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModelFactory
-import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
-import com.tencent.mmkv.MMKV
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        MMKV.initialize(this)
-
-        val database = NoteDatabase.getDatabase(this)
-        val repository = NoteRepository(database.noteDao())
-        val factory = NoteViewModelFactory(repository)
-
-        setContent {
-            val settingsViewModel: SettingsViewModel = viewModel()
-            val noteViewModel: NoteViewModel = viewModel(factory = factory)
-            val navController = rememberNavController()
-
-            KanazNotesTheme(settingsViewModel = settingsViewModel) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    NavGraph(
-                        navController = navController,
-                        noteViewModel = noteViewModel,
-                        settingsViewModel = settingsViewModel
-                    )
-                }
-            }
-        }
-    }
-}
-EOF
-
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/navigation/NavGraph.kt
-package com.gokanaz.kanaznotes.ui.navigation
-
-import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import com.gokanaz.kanaznotes.ui.screens.*
-import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
-import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
-
-@Composable
-fun NavGraph(
-    navController: NavHostController,
-    noteViewModel: NoteViewModel,
-    settingsViewModel: SettingsViewModel
-) {
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") {
-            HomeScreen(
-                noteViewModel = noteViewModel,
-                settingsViewModel = settingsViewModel,
-                navController = navController
-            )
-        }
-        composable("add_note") {
-            AddEditNoteScreen(
-                noteViewModel = noteViewModel,
-                navController = navController,
-                existingNoteId = null
-            )
-        }
-        composable("edit_note/{noteId}") { backStackEntry ->
-            val noteId = backStackEntry.arguments?.getInt("noteId") ?: return@composable
-            AddEditNoteScreen(
-                noteViewModel = noteViewModel,
-                navController = navController,
-                existingNoteId = noteId
-            )
-        }
-        composable("search") {
-            SearchScreen(
-                noteViewModel = noteViewModel,
-                navController = navController
-            )
-        }
-        composable("settings") {
-            SettingsScreen(
-                navController = navController,
-                settingsViewModel = settingsViewModel
-            )
-        }
-        composable("style_settings") {
-            StyleSettingsScreen(
-                navController = navController,
-                settingsViewModel = settingsViewModel
-            )
-        }
-        composable("language_settings") {
-            LanguageSettingsScreen(
-                navController = navController,
-                settingsViewModel = settingsViewModel
-            )
-        }
-        composable("security_settings") {
-            SecuritySettingsScreen(
-                navController = navController,
-                settingsViewModel = settingsViewModel
-            )
-        }
-        composable("cloud_settings") {
-            CloudSettingsScreen(
-                navController = navController,
-                settingsViewModel = settingsViewModel
-            )
-        }
-        composable("templates") {
-            TemplateScreen(
-                noteViewModel = noteViewModel,
-                navController = navController
-            )
-        }
-        composable("archive") {
-            ArchiveScreen(
-                noteViewModel = noteViewModel,
-                navController = navController
-            )
-        }
-    }
-}
-EOF
-
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/viewmodel/NoteViewModel.kt
-package com.gokanaz.kanaznotes.ui.viewmodel
-
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.gokanaz.kanaznotes.data.local.NoteEntity
-import com.gokanaz.kanaznotes.data.repository.NoteRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-
-class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
-
-    val allNotes: Flow<List<NoteEntity>> = repository.getAllNotes()
-    val templates: Flow<List<NoteEntity>> = repository.getTemplates()
-    val archivedNotes: Flow<List<NoteEntity>> = repository.getArchivedNotes()
-
-    fun insertNote(note: NoteEntity) {
-        viewModelScope.launch {
-            repository.insertNote(note)
-        }
-    }
-
-    fun updateNote(note: NoteEntity) {
-        viewModelScope.launch {
-            repository.updateNote(note)
-        }
-    }
-
-    fun deleteNote(note: NoteEntity) {
-        viewModelScope.launch {
-            repository.deleteNote(note)
-        }
-    }
-
-    fun archiveNote(note: NoteEntity) {
-        viewModelScope.launch {
-            repository.updateNote(note.copy(isDeleted = true))
-        }
-    }
-
-    fun unarchiveNote(note: NoteEntity) {
-        viewModelScope.launch {
-            repository.updateNote(note.copy(isDeleted = false))
-        }
-    }
-
-    fun togglePin(note: NoteEntity) {
-        viewModelScope.launch {
-            repository.updateNote(note.copy(isPinned = !note.isPinned))
-        }
-    }
-
-    fun getNoteById(id: Int): NoteEntity? {
-        return runBlocking {
-            repository.getNoteById(id)
-        }
-    }
-}
-EOF
-
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/data/repository/NoteRepository.kt
-package com.gokanaz.kanaznotes.data.repository
-
-import com.gokanaz.kanaznotes.data.local.NoteDao
-import com.gokanaz.kanaznotes.data.local.NoteEntity
-import kotlinx.coroutines.flow.Flow
-
-class NoteRepository(private val noteDao: NoteDao) {
-
-    suspend fun insertNote(note: NoteEntity) {
-        noteDao.insertNote(note)
-    }
-
-    suspend fun updateNote(note: NoteEntity) {
-        noteDao.updateNote(note)
-    }
-
-    suspend fun deleteNote(note: NoteEntity) {
-        noteDao.deleteNote(note)
-    }
-
-    fun getAllNotes(): Flow<List<NoteEntity>> {
-        return noteDao.getAllNotes()
-    }
-
-    fun getTemplates(): Flow<List<NoteEntity>> {
-        return noteDao.getTemplates()
-    }
-
-    fun getArchivedNotes(): Flow<List<NoteEntity>> {
-        return noteDao.getArchivedNotes()
-    }
-
-    suspend fun getNoteById(id: Int): NoteEntity? {
-        return noteDao.getNoteById(id)
-    }
-}
-EOF
-
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/data/local/NoteDao.kt
-package com.gokanaz.kanaznotes.data.local
-
-import androidx.room.*
-import kotlinx.coroutines.flow.Flow
-
-@Dao
-interface NoteDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertNote(note: NoteEntity)
-
-    @Update
-    suspend fun updateNote(note: NoteEntity)
-
-    @Delete
-    suspend fun deleteNote(note: NoteEntity)
-
-    @Query("SELECT * FROM notes_table WHERE isDeleted = 0 AND isTemplate = 0 ORDER BY isPinned DESC, id DESC")
-    fun getAllNotes(): Flow<List<NoteEntity>>
-
-    @Query("SELECT * FROM notes_table WHERE isTemplate = 1 ORDER BY id DESC")
-    fun getTemplates(): Flow<List<NoteEntity>>
-
-    @Query("SELECT * FROM notes_table WHERE isDeleted = 1 ORDER BY id DESC")
-    fun getArchivedNotes(): Flow<List<NoteEntity>>
-
-    @Query("SELECT * FROM notes_table WHERE id = :id")
-    suspend fun getNoteById(id: Int): NoteEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFolder(folder: FolderEntity)
-
-    @Query("SELECT * FROM folders_table")
-    fun getAllFolders(): Flow<List<FolderEntity>>
-}
-EOF
-
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/HomeScreen.kt
+cat <<'ENDOFFILE' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/HomeScreen.kt
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -325,6 +26,7 @@ import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlinx.coroutines.launch
 
 val noteColors = listOf(
     Color(0xFFFFFBFE),
@@ -348,10 +50,10 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var noteToDelete by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
+    var noteToDelete by remember { mutableStateOf<NoteEntity?>(null) }
     var selectedNotes by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var showColorPicker by remember { mutableStateOf(false) }
-    var noteForColor by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
+    var noteForColor by remember { mutableStateOf<NoteEntity?>(null) }
 
     if (showDeleteDialog && noteToDelete != null) {
         AlertDialog(
@@ -385,17 +87,17 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
-                                .background(color, shape = androidx.compose.ui.shape.CircleShape)
+                                .background(color, shape = CircleShape)
+                                .border(
+                                    width = if (noteForColor!!.color == index) 2.5.dp else 1.dp,
+                                    color = if (noteForColor!!.color == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                    shape = CircleShape
+                                )
                                 .combinedClickable(onClick = {
                                     noteViewModel.updateNote(noteForColor!!.copy(color = index))
                                     showColorPicker = false
                                     noteForColor = null
                                 })
-                                .border(
-                                    width = if (noteForColor!!.color == index) 2.5.dp else 1.dp,
-                                    color = if (noteForColor!!.color == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                    shape = androidx.compose.ui.shape.CircleShape
-                                )
                         )
                     }
                 }
@@ -429,8 +131,10 @@ fun HomeScreen(
                     label = { Text("Arsip") },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("archive")
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate("archive")
+                        }
                     },
                     icon = { Icon(Icons.Outlined.Archive, null) }
                 )
@@ -438,8 +142,10 @@ fun HomeScreen(
                     label = { Text("Template") },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("templates")
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate("templates")
+                        }
                     },
                     icon = { Icon(Icons.Outlined.Description, null) }
                 )
@@ -448,8 +154,10 @@ fun HomeScreen(
                     label = { Text("Pengaturan") },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("settings")
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate("settings")
+                        }
                     },
                     icon = { Icon(Icons.Outlined.Settings, null) }
                 )
@@ -547,8 +255,7 @@ fun HomeScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalItemSpacing = 8.dp
+                    contentPadding = PaddingValues(8.dp)
                 ) {
                     val pinnedNotes = notes.filter { it.isPinned }
                     val unpinnedNotes = notes.filter { !it.isPinned }
@@ -580,6 +287,7 @@ fun HomeScreen(
                                 },
                                 onPin = { noteViewModel.togglePin(note) }
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                         item {
                             Divider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
@@ -609,6 +317,7 @@ fun HomeScreen(
                             },
                             onPin = { noteViewModel.togglePin(note) }
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
@@ -644,14 +353,6 @@ fun NoteCard(
             contentColor = MaterialTheme.colorScheme.onSurface,
             disabledContainerColor = cardColor,
             disabledContentColor = MaterialTheme.colorScheme.onSurface
-        ),
-        elevation = CardElevation(
-            defaultElevation = 1.dp,
-            pressedElevation = 2.dp,
-            focusedElevation = 2.dp,
-            hoveredElevation = 2.dp,
-            draggedElevation = 4.dp,
-            disabledElevation = 0.dp
         )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -698,14 +399,18 @@ fun NoteCard(
         }
     }
 }
-EOF
 
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/AddEditNoteScreen.kt
+ENDOFFILE
+
+cat <<'ENDOFFILE' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/AddEditNoteScreen.kt
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -726,7 +431,7 @@ fun AddEditNoteScreen(
     navController: NavHostController,
     existingNoteId: Int?
 ) {
-    var existingNote by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
+    var existingNote by remember { mutableStateOf<NoteEntity?>(null) }
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var color by remember { mutableStateOf(0) }
@@ -899,13 +604,17 @@ fun AddEditNoteScreen(
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
-                                .background(c, shape = androidx.compose.ui.shape.CircleShape)
-                                .combinedClickable(onClick = { color = index; hasChanges = true; showColorPicker = false })
+                                .background(c, shape = CircleShape)
                                 .border(
                                     width = if (color == index) 2.5.dp else 1.dp,
                                     color = if (color == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                    shape = androidx.compose.ui.shape.CircleShape
+                                    shape = CircleShape
                                 )
+                                .combinedClickable(onClick = {
+                                    color = index
+                                    hasChanges = true
+                                    showColorPicker = false
+                                })
                         )
                     }
                 }
@@ -918,10 +627,12 @@ fun AddEditNoteScreen(
                 textStyle = MaterialTheme.typography.displaySmall.copy(color = MaterialTheme.colorScheme.onSurface),
                 singleLine = true,
                 decorationBox = { innerTextField ->
-                    if (title.isEmpty()) {
-                        Text("Judul", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Box {
+                        if (title.isEmpty()) {
+                            Text("Judul", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        innerTextField()
                     }
-                    innerTextField()
                 }
             )
 
@@ -931,18 +642,21 @@ fun AddEditNoteScreen(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                 decorationBox = { innerTextField ->
-                    if (content.isEmpty()) {
-                        Text("Tambah catatan...", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Box {
+                        if (content.isEmpty()) {
+                            Text("Tambah catatan...", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        innerTextField()
                     }
-                    innerTextField()
                 }
             )
         }
     }
 }
-EOF
 
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/SearchScreen.kt
+ENDOFFILE
+
+cat <<'ENDOFFILE' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/SearchScreen.kt
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.clickable
@@ -969,7 +683,7 @@ fun SearchScreen(
 ) {
     val notes by noteViewModel.allNotes.collectAsState(initial = emptyList())
     var query by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(true) }
+    var active by remember { mutableStateOf(true) }
 
     val filtered = if (query.isBlank()) emptyList()
     else notes.filter {
@@ -977,15 +691,16 @@ fun SearchScreen(
     }
 
     SearchBar(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
         query = query,
         onQueryChange = { query = it },
+        onSearch = {},
+        active = active,
+        onActiveChange = { active = it },
         placeholder = { Text("Cari catatan...") },
         leadingIcon = {
-            if (expanded) {
+            if (active) {
                 IconButton(onClick = {
-                    if (query.isNotEmpty()) query = "" else { expanded = false; navController.popBackStack() }
+                    if (query.isNotEmpty()) query = "" else { active = false; navController.popBackStack() }
                 }) {
                     Icon(Icons.Default.ArrowBack, null)
                 }
@@ -999,65 +714,66 @@ fun SearchScreen(
                     Icon(Icons.Default.Close, null)
                 }
             }
-        },
-        content = {
-            if (query.isBlank()) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(Icons.Default.Search, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Ketuk untuk mencari catatan Anda", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else if (filtered.isEmpty()) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Tidak ditemukan hasil untuk \"$query\"", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                LazyColumn(contentPadding = PaddingValues(8.dp), verticalItemSpacing = 4.dp) {
-                    items(filtered, key = { it.id }) { note ->
-                        val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
-                        Card(
-                            modifier = Modifier.fillMaxWidth().clickable { navController.navigate("edit_note/${note.id}") },
-                            colors = CardColors(
-                                containerColor = noteColors[colorIndex],
-                                contentColor = MaterialTheme.colorScheme.onSurface,
-                                disabledContainerColor = noteColors[colorIndex],
-                                disabledContentColor = MaterialTheme.colorScheme.onSurface
-                            )
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                if (note.title.isNotBlank()) {
-                                    Text(note.title, style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                                }
-                                if (note.content.isNotBlank()) {
-                                    Text(note.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                                Text(
-                                    SimpleDateFormat("dd MMM yyyy").format(Date(note.timestamp)),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
+        }
+    ) {
+        if (query.isBlank()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(Icons.Default.Search, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Ketuk untuk mencari catatan Anda", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else if (filtered.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Tidak ditemukan hasil untuk \"$query\"", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            LazyColumn(contentPadding = PaddingValues(8.dp)) {
+                items(filtered, key = { it.id }) { note ->
+                    val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable { navController.navigate("edit_note/${note.id}") },
+                        colors = CardColors(
+                            containerColor = noteColors[colorIndex],
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            disabledContainerColor = noteColors[colorIndex],
+                            disabledContentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            if (note.title.isNotBlank()) {
+                                Text(note.title, style = MaterialTheme.typography.titleMedium, maxLines = 1)
                             }
+                            if (note.content.isNotBlank()) {
+                                Text(note.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Text(
+                                SimpleDateFormat("dd MMM yyyy").format(Date(note.timestamp)),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
                         }
                     }
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
-    )
+    }
 }
-EOF
 
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/SettingsScreen.kt
+ENDOFFILE
+
+cat <<'ENDOFFILE' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/SettingsScreen.kt
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.clickable
@@ -1093,8 +809,7 @@ fun SettingsScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalItemSpacing = 4.dp
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 SectionTitle("Tampilan")
@@ -1176,15 +891,18 @@ fun SettingsListItem(
         modifier = Modifier.clickable(onClick = onClick)
     )
 }
-EOF
 
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/StyleSettingsScreen.kt
+ENDOFFILE
+
+cat <<'ENDOFFILE' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/StyleSettingsScreen.kt
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -1220,8 +938,7 @@ fun StyleSettingsScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalItemSpacing = 8.dp
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 Card {
@@ -1239,6 +956,7 @@ fun StyleSettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
             item {
                 Card {
@@ -1256,6 +974,7 @@ fun StyleSettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
             item {
                 Card {
@@ -1273,6 +992,7 @@ fun StyleSettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
             if (!isDynamicColor) {
                 item {
@@ -1285,12 +1005,12 @@ fun StyleSettingsScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(48.dp)
-                                            .clickable { settingsViewModel.setSelectedColorPalette(index) }
                                             .border(
                                                 width = if (selectedPalette == index) 2.5.dp else 1.dp,
                                                 color = if (selectedPalette == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                                shape = androidx.compose.ui.shape.RoundedCornerShape(12.dp)
-                                            ),
+                                                shape = RoundedCornerShape(12.dp)
+                                            )
+                                            .clickable { settingsViewModel.setSelectedColorPalette(index) },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Row {
@@ -1308,40 +1028,81 @@ fun StyleSettingsScreen(
         }
     }
 }
-EOF
 
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/LanguageSettingsScreen.kt
+ENDOFFILE
+
+cat <<'ENDOFFILE' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/ArchiveScreen.kt
 package com.gokanaz.kanaznotes.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
+import com.gokanaz.kanaznotes.data.local.NoteEntity
+import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageSettingsScreen(
-    navController: NavHostController,
-    settingsViewModel: SettingsViewModel
+fun ArchiveScreen(
+    noteViewModel: NoteViewModel,
+    navController: NavHostController
 ) {
-    val language by settingsViewModel.language.collectAsState()
+    val archivedNotes by noteViewModel.archivedNotes.collectAsState(initial = emptyList())
+    var showRestoreDialog by remember { mutableStateOf(false) }
+    var noteToRestore by remember { mutableStateOf<NoteEntity?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var noteToDelete by remember { mutableStateOf<NoteEntity?>(null) }
 
-    val languages = listOf(
-        "en" to "English",
-        "id" to "Bahasa Indonesia"
-    )
+    if (showRestoreDialog && noteToRestore != null) {
+        AlertDialog(
+            onDismissRequest = { showRestoreDialog = false },
+            title = { Text("Pulihkan Catatan") },
+            text = { Text("Catatan ini akan dipulihkan ke daftar utama.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    noteViewModel.unarchiveNote(noteToRestore!!)
+                    showRestoreDialog = false
+                    noteToRestore = null
+                }) { Text("Pulihkan") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRestoreDialog = false }) { Text("Batal") }
+            }
+        )
+    }
+
+    if (showDeleteDialog && noteToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Hapus Selamanya") },
+            text = { Text("Catatan ini akan dihapus secara permanen dan tidak dapat dipulihkan.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    noteViewModel.deleteNote(noteToDelete!!)
+                    showDeleteDialog = false
+                    noteToDelete = null
+                }) { Text("Hapus", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Batal") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Bahasa") },
+                title = { Text("Arsip") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, null)
@@ -1350,38 +1111,199 @@ fun LanguageSettingsScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp)
-        ) {
-            item {
-                Card {
-                    Column {
-                        languages.forEachIndexed { index, (code, name) ->
-                            ListItem(
-                                headlineContent = { Text(name) },
-                                supportingContent = { Text(code.uppercase()) },
-                                trailingContent = {
-                                    RadioButton(
-                                        selected = language == code,
-                                        onClick = { settingsViewModel.setLanguage(code) }
-                                    )
-                                },
-                                modifier = Modifier.clickable { settingsViewModel.setLanguage(code) }
-                            )
-                            if (index < languages.size - 1) {
-                                Divider(modifier = Modifier.padding(horizontal = 16.dp))
+        if (archivedNotes.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(Icons.Outlined.Archive, null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Arsip kosong", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Catatan yang diarsip akan muncul di sini", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(archivedNotes, key = { it.id }) { note ->
+                    val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
+                    Card(
+                        colors = CardColors(
+                            containerColor = noteColors[colorIndex],
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            disabledContainerColor = noteColors[colorIndex],
+                            disabledContentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(note.title.ifBlank { "(Tanpa Judul)" }, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                                Row {
+                                    IconButton(onClick = { noteToRestore = note; showRestoreDialog = true }, modifier = Modifier.size(36.dp)) {
+                                        Icon(Icons.Filled.Unarchive, null, modifier = Modifier.size(20.dp))
+                                    }
+                                    IconButton(onClick = { noteToDelete = note; showDeleteDialog = true }, modifier = Modifier.size(36.dp)) {
+                                        Icon(Icons.Filled.Delete, null, modifier = Modifier.size(20.dp))
+                                    }
+                                }
                             }
+                            if (note.content.isNotBlank()) {
+                                Text(note.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                SimpleDateFormat("dd MMM yyyy").format(Date(note.timestamp)),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
 }
-EOF
 
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/SecuritySettingsScreen.kt
+ENDOFFILE
+
+cat <<'ENDOFFILE' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/TemplateScreen.kt
+package com.gokanaz.kanaznotes.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.data.local.NoteEntity
+import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TemplateScreen(
+    noteViewModel: NoteViewModel,
+    navController: NavHostController
+) {
+    val templates by noteViewModel.templates.collectAsState(initial = emptyList())
+    var showUseDialog by remember { mutableStateOf(false) }
+    var selectedTemplate by remember { mutableStateOf<NoteEntity?>(null) }
+
+    if (showUseDialog && selectedTemplate != null) {
+        AlertDialog(
+            onDismissRequest = { showUseDialog = false },
+            title = { Text("Gunakan Template") },
+            text = { Text("Buat catatan baru dari template \"${selectedTemplate!!.title}\"?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    val newNote = NoteEntity(
+                        title = selectedTemplate!!.title,
+                        content = selectedTemplate!!.content,
+                        color = selectedTemplate!!.color,
+                        timestamp = System.currentTimeMillis(),
+                        isTemplate = false
+                    )
+                    noteViewModel.insertNote(newNote)
+                    showUseDialog = false
+                    selectedTemplate = null
+                    navController.popBackStack()
+                }) { Text("Buat") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUseDialog = false }) { Text("Batal") }
+            }
+        )
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Template") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, null)
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        if (templates.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(Icons.Outlined.Description, null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Belum ada template", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Simpan catatan sebagai template dari layar edit", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(templates, key = { it.id }) { template ->
+                    val colorIndex = template.color.coerceIn(0, noteColors.size - 1)
+                    Card(
+                        colors = CardColors(
+                            containerColor = noteColors[colorIndex],
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            disabledContainerColor = noteColors[colorIndex],
+                            disabledContentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(template.title, style = MaterialTheme.typography.titleMedium)
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    IconButton(
+                                        onClick = { noteViewModel.deleteNote(template) },
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Icon(Icons.Filled.Delete, null, modifier = Modifier.size(18.dp))
+                                    }
+                                    Button(
+                                        onClick = { selectedTemplate = template; showUseDialog = true },
+                                        modifier = Modifier.height(32.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp)
+                                    ) {
+                                        Text("Gunakan", style = MaterialTheme.typography.labelMedium)
+                                    }
+                                }
+                            }
+                            if (template.content.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(template.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
+
+ENDOFFILE
+
+cat <<'ENDOFFILE' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/SecuritySettingsScreen.kt
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -1469,8 +1391,7 @@ fun SecuritySettingsScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalItemSpacing = 8.dp
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 Card {
@@ -1496,6 +1417,7 @@ fun SecuritySettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
             item {
                 Card {
@@ -1517,9 +1439,10 @@ fun SecuritySettingsScreen(
         }
     }
 }
-EOF
 
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/CloudSettingsScreen.kt
+ENDOFFILE
+
+cat <<'ENDOFFILE' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/CloudSettingsScreen.kt
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -1564,8 +1487,7 @@ fun CloudSettingsScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalItemSpacing = 12.dp
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 Card {
@@ -1603,6 +1525,7 @@ fun CloudSettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
             }
             item {
                 Card {
@@ -1624,282 +1547,9 @@ fun CloudSettingsScreen(
         }
     }
 }
-EOF
 
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/TemplateScreen.kt
-package com.gokanaz.kanaznotes.ui.screens
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.gokanaz.kanaznotes.data.local.NoteEntity
-import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TemplateScreen(
-    noteViewModel: NoteViewModel,
-    navController: NavHostController
-) {
-    val templates by noteViewModel.templates.collectAsState(initial = emptyList())
-    var showUseDialog by remember { mutableStateOf(false) }
-    var selectedTemplate by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
-
-    if (showUseDialog && selectedTemplate != null) {
-        AlertDialog(
-            onDismissRequest = { showUseDialog = false },
-            title = { Text("Gunakan Template") },
-            text = { Text("Buat catatan baru dari template \"${selectedTemplate!!.title}\"?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    val newNote = NoteEntity(
-                        title = selectedTemplate!!.title,
-                        content = selectedTemplate!!.content,
-                        color = selectedTemplate!!.color,
-                        timestamp = System.currentTimeMillis(),
-                        isTemplate = false
-                    )
-                    noteViewModel.insertNote(newNote)
-                    showUseDialog = false
-                    selectedTemplate = null
-                    navController.popBackStack()
-                }) { Text("Buat") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showUseDialog = false }) { Text("Batal") }
-            }
-        )
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Template") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, null)
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        if (templates.isEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(Icons.Outlined.Description, null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Belum ada template", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Simpan catatan sebagai template dari layar edit", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalItemSpacing = 8.dp
-            ) {
-                items(templates, key = { it.id }) { template ->
-                    val colorIndex = template.color.coerceIn(0, noteColors.size - 1)
-                    Card(
-                        colors = CardColors(
-                            containerColor = noteColors[colorIndex],
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                            disabledContainerColor = noteColors[colorIndex],
-                            disabledContentColor = MaterialTheme.colorScheme.onSurface
-                        )
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(template.title, style = MaterialTheme.typography.titleMedium)
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    IconButton(
-                                        onClick = { noteViewModel.deleteNote(template) },
-                                        modifier = Modifier.size(36.dp)
-                                    ) {
-                                        Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp))
-                                    }
-                                    Button(
-                                        onClick = { selectedTemplate = template; showUseDialog = true },
-                                        modifier = Modifier.height(32.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp)
-                                    ) {
-                                        Text("Gunakan", style = MaterialTheme.typography.labelMedium)
-                                    }
-                                }
-                            }
-                            if (template.content.isNotBlank()) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(template.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-EOF
-
-cat <<'EOF' > app/src/main/java/com/gokanaz/kanaznotes/ui/screens/ArchiveScreen.kt
-package com.gokanaz.kanaznotes.ui.screens
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.gokanaz.kanaznotes.data.local.NoteEntity
-import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ArchiveScreen(
-    noteViewModel: NoteViewModel,
-    navController: NavHostController
-) {
-    val archivedNotes by noteViewModel.archivedNotes.collectAsState(initial = emptyList())
-    var showRestoreDialog by remember { mutableStateOf(false) }
-    var noteToRestore by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var noteToDelete by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
-
-    if (showRestoreDialog && noteToRestore != null) {
-        AlertDialog(
-            onDismissRequest = { showRestoreDialog = false },
-            title = { Text("Pulihkan Catatan") },
-            text = { Text("Catatan ini akan dipulihkan ke daftar utama.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    noteViewModel.unarchiveNote(noteToRestore!!)
-                    showRestoreDialog = false
-                    noteToRestore = null
-                }) { Text("Pulihkan") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRestoreDialog = false }) { Text("Batal") }
-            }
-        )
-    }
-
-    if (showDeleteDialog && noteToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Hapus Selamanya") },
-            text = { Text("Catatan ini akan dihapus secara permanen dan tidak dapat dipulihkan.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    noteViewModel.deleteNote(noteToDelete!!)
-                    showDeleteDialog = false
-                    noteToDelete = null
-                }) { Text("Hapus", color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Batal") }
-            }
-        )
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Arsip") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, null)
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        if (archivedNotes.isEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(Icons.Outlined.Archive, null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Arsip kosong", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Catatan yang diarsip akan muncul di sini", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalItemSpacing = 8.dp
-            ) {
-                items(archivedNotes, key = { it.id }) { note ->
-                    val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
-                    Card(
-                        colors = CardColors(
-                            containerColor = noteColors[colorIndex],
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                            disabledContainerColor = noteColors[colorIndex],
-                            disabledContentColor = MaterialTheme.colorScheme.onSurface
-                        )
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(note.title.ifBlank { "(Tanpa Judul)" }, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                                Row {
-                                    IconButton(onClick = { noteToRestore = note; showRestoreDialog = true }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Default.Unarchive, null, modifier = Modifier.size(20.dp))
-                                    }
-                                    IconButton(onClick = { noteToDelete = note; showDeleteDialog = true }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Default.Delete, null, modifier = Modifier.size(20.dp))
-                                    }
-                                }
-                            }
-                            if (note.content.isNotBlank()) {
-                                Text(note.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                SimpleDateFormat("dd MMM yyyy").format(Date(note.timestamp)),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-EOF
-
-# ============================================================
-# STEP 3 - Git commit dan push
-# ============================================================
+ENDOFFILE
 
 git add -A
-git commit -m "rebuild: UI modern lengkap - home, editor, search, archive, template, settings"
+git commit -m "fix: resolve all compile errors - imports, types, API compat"
 git push origin main

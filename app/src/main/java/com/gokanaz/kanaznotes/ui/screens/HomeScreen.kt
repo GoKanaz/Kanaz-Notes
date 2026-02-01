@@ -1,11 +1,13 @@
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -21,6 +23,7 @@ import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlinx.coroutines.launch
 
 val noteColors = listOf(
     Color(0xFFFFFBFE),
@@ -44,10 +47,10 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var noteToDelete by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
+    var noteToDelete by remember { mutableStateOf<NoteEntity?>(null) }
     var selectedNotes by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var showColorPicker by remember { mutableStateOf(false) }
-    var noteForColor by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
+    var noteForColor by remember { mutableStateOf<NoteEntity?>(null) }
 
     if (showDeleteDialog && noteToDelete != null) {
         AlertDialog(
@@ -81,17 +84,17 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
-                                .background(color, shape = androidx.compose.ui.shape.CircleShape)
+                                .background(color, shape = CircleShape)
+                                .border(
+                                    width = if (noteForColor!!.color == index) 2.5.dp else 1.dp,
+                                    color = if (noteForColor!!.color == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                    shape = CircleShape
+                                )
                                 .combinedClickable(onClick = {
                                     noteViewModel.updateNote(noteForColor!!.copy(color = index))
                                     showColorPicker = false
                                     noteForColor = null
                                 })
-                                .border(
-                                    width = if (noteForColor!!.color == index) 2.5.dp else 1.dp,
-                                    color = if (noteForColor!!.color == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                    shape = androidx.compose.ui.shape.CircleShape
-                                )
                         )
                     }
                 }
@@ -125,8 +128,10 @@ fun HomeScreen(
                     label = { Text("Arsip") },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("archive")
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate("archive")
+                        }
                     },
                     icon = { Icon(Icons.Outlined.Archive, null) }
                 )
@@ -134,8 +139,10 @@ fun HomeScreen(
                     label = { Text("Template") },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("templates")
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate("templates")
+                        }
                     },
                     icon = { Icon(Icons.Outlined.Description, null) }
                 )
@@ -144,8 +151,10 @@ fun HomeScreen(
                     label = { Text("Pengaturan") },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("settings")
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate("settings")
+                        }
                     },
                     icon = { Icon(Icons.Outlined.Settings, null) }
                 )
@@ -243,8 +252,7 @@ fun HomeScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalItemSpacing = 8.dp
+                    contentPadding = PaddingValues(8.dp)
                 ) {
                     val pinnedNotes = notes.filter { it.isPinned }
                     val unpinnedNotes = notes.filter { !it.isPinned }
@@ -276,6 +284,7 @@ fun HomeScreen(
                                 },
                                 onPin = { noteViewModel.togglePin(note) }
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                         item {
                             Divider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
@@ -305,6 +314,7 @@ fun HomeScreen(
                             },
                             onPin = { noteViewModel.togglePin(note) }
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
@@ -340,14 +350,6 @@ fun NoteCard(
             contentColor = MaterialTheme.colorScheme.onSurface,
             disabledContainerColor = cardColor,
             disabledContentColor = MaterialTheme.colorScheme.onSurface
-        ),
-        elevation = CardElevation(
-            defaultElevation = 1.dp,
-            pressedElevation = 2.dp,
-            focusedElevation = 2.dp,
-            hoveredElevation = 2.dp,
-            draggedElevation = 4.dp,
-            disabledElevation = 0.dp
         )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -394,3 +396,4 @@ fun NoteCard(
         }
     }
 }
+

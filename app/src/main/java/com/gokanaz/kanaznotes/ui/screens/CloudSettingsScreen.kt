@@ -42,8 +42,7 @@ fun CloudSettingsScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalItemSpacing = 12.dp
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 Card {
@@ -81,6 +80,7 @@ fun CloudSettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
             }
             item {
                 Card {
@@ -102,3 +102,4 @@ fun CloudSettingsScreen(
         }
     }
 }
+

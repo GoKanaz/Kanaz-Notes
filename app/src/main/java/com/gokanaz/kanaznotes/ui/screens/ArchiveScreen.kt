@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,9 +25,9 @@ fun ArchiveScreen(
 ) {
     val archivedNotes by noteViewModel.archivedNotes.collectAsState(initial = emptyList())
     var showRestoreDialog by remember { mutableStateOf(false) }
-    var noteToRestore by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
+    var noteToRestore by remember { mutableStateOf<NoteEntity?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var noteToDelete by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
+    var noteToDelete by remember { mutableStateOf<NoteEntity?>(null) }
 
     if (showRestoreDialog && noteToRestore != null) {
         AlertDialog(
@@ -91,8 +91,7 @@ fun ArchiveScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalItemSpacing = 8.dp
+                contentPadding = PaddingValues(16.dp)
             ) {
                 items(archivedNotes, key = { it.id }) { note ->
                     val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
@@ -113,10 +112,10 @@ fun ArchiveScreen(
                                 Text(note.title.ifBlank { "(Tanpa Judul)" }, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                                 Row {
                                     IconButton(onClick = { noteToRestore = note; showRestoreDialog = true }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Default.Unarchive, null, modifier = Modifier.size(20.dp))
+                                        Icon(Icons.Filled.Unarchive, null, modifier = Modifier.size(20.dp))
                                     }
                                     IconButton(onClick = { noteToDelete = note; showDeleteDialog = true }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Default.Delete, null, modifier = Modifier.size(20.dp))
+                                        Icon(Icons.Filled.Delete, null, modifier = Modifier.size(20.dp))
                                     }
                                 }
                             }
@@ -131,8 +130,10 @@ fun ArchiveScreen(
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
 }
+

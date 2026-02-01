@@ -1,9 +1,11 @@
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -39,8 +41,7 @@ fun StyleSettingsScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalItemSpacing = 8.dp
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 Card {
@@ -58,6 +59,7 @@ fun StyleSettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
             item {
                 Card {
@@ -75,6 +77,7 @@ fun StyleSettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
             item {
                 Card {
@@ -92,6 +95,7 @@ fun StyleSettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
             if (!isDynamicColor) {
                 item {
@@ -104,12 +108,12 @@ fun StyleSettingsScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(48.dp)
-                                            .clickable { settingsViewModel.setSelectedColorPalette(index) }
                                             .border(
                                                 width = if (selectedPalette == index) 2.5.dp else 1.dp,
                                                 color = if (selectedPalette == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                                shape = androidx.compose.ui.shape.RoundedCornerShape(12.dp)
-                                            ),
+                                                shape = RoundedCornerShape(12.dp)
+                                            )
+                                            .clickable { settingsViewModel.setSelectedColorPalette(index) },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Row {
@@ -127,3 +131,4 @@ fun StyleSettingsScreen(
         }
     }
 }
+

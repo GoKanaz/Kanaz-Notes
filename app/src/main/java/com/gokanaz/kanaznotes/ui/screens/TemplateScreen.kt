@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,7 +23,7 @@ fun TemplateScreen(
 ) {
     val templates by noteViewModel.templates.collectAsState(initial = emptyList())
     var showUseDialog by remember { mutableStateOf(false) }
-    var selectedTemplate by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
+    var selectedTemplate by remember { mutableStateOf<NoteEntity?>(null) }
 
     if (showUseDialog && selectedTemplate != null) {
         AlertDialog(
@@ -77,8 +77,7 @@ fun TemplateScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalItemSpacing = 8.dp
+                contentPadding = PaddingValues(16.dp)
             ) {
                 items(templates, key = { it.id }) { template ->
                     val colorIndex = template.color.coerceIn(0, noteColors.size - 1)
@@ -102,7 +101,7 @@ fun TemplateScreen(
                                         onClick = { noteViewModel.deleteNote(template) },
                                         modifier = Modifier.size(36.dp)
                                     ) {
-                                        Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp))
+                                        Icon(Icons.Filled.Delete, null, modifier = Modifier.size(18.dp))
                                     }
                                     Button(
                                         onClick = { selectedTemplate = template; showUseDialog = true },
@@ -119,8 +118,10 @@ fun TemplateScreen(
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
 }
+

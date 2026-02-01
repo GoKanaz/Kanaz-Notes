@@ -1,8 +1,11 @@
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -23,7 +26,7 @@ fun AddEditNoteScreen(
     navController: NavHostController,
     existingNoteId: Int?
 ) {
-    var existingNote by remember<MutableState<NoteEntity?>>(mutableStateOf(null))
+    var existingNote by remember { mutableStateOf<NoteEntity?>(null) }
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var color by remember { mutableStateOf(0) }
@@ -196,13 +199,17 @@ fun AddEditNoteScreen(
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
-                                .background(c, shape = androidx.compose.ui.shape.CircleShape)
-                                .combinedClickable(onClick = { color = index; hasChanges = true; showColorPicker = false })
+                                .background(c, shape = CircleShape)
                                 .border(
                                     width = if (color == index) 2.5.dp else 1.dp,
                                     color = if (color == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                    shape = androidx.compose.ui.shape.CircleShape
+                                    shape = CircleShape
                                 )
+                                .combinedClickable(onClick = {
+                                    color = index
+                                    hasChanges = true
+                                    showColorPicker = false
+                                })
                         )
                     }
                 }
@@ -215,10 +222,12 @@ fun AddEditNoteScreen(
                 textStyle = MaterialTheme.typography.displaySmall.copy(color = MaterialTheme.colorScheme.onSurface),
                 singleLine = true,
                 decorationBox = { innerTextField ->
-                    if (title.isEmpty()) {
-                        Text("Judul", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Box {
+                        if (title.isEmpty()) {
+                            Text("Judul", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        innerTextField()
                     }
-                    innerTextField()
                 }
             )
 
@@ -228,12 +237,15 @@ fun AddEditNoteScreen(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                 decorationBox = { innerTextField ->
-                    if (content.isEmpty()) {
-                        Text("Tambah catatan...", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Box {
+                        if (content.isEmpty()) {
+                            Text("Tambah catatan...", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        innerTextField()
                     }
-                    innerTextField()
                 }
             )
         }
     }
 }
+

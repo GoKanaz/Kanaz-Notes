@@ -85,8 +85,7 @@ fun SecuritySettingsScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalItemSpacing = 8.dp
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 Card {
@@ -112,6 +111,7 @@ fun SecuritySettingsScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
             item {
                 Card {
@@ -133,3 +133,4 @@ fun SecuritySettingsScreen(
         }
     }
 }
+

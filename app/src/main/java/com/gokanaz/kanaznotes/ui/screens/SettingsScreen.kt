@@ -33,8 +33,7 @@ fun SettingsScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalItemSpacing = 4.dp
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 SectionTitle("Tampilan")
@@ -116,3 +115,4 @@ fun SettingsListItem(
         modifier = Modifier.clickable(onClick = onClick)
     )
 }
+

@@ -24,7 +24,7 @@ fun SearchScreen(
 ) {
     val notes by noteViewModel.allNotes.collectAsState(initial = emptyList())
     var query by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(true) }
+    var active by remember { mutableStateOf(true) }
 
     val filtered = if (query.isBlank()) emptyList()
     else notes.filter {
@@ -32,15 +32,16 @@ fun SearchScreen(
     }
 
     SearchBar(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
         query = query,
         onQueryChange = { query = it },
+        onSearch = {},
+        active = active,
+        onActiveChange = { active = it },
         placeholder = { Text("Cari catatan...") },
         leadingIcon = {
-            if (expanded) {
+            if (active) {
                 IconButton(onClick = {
-                    if (query.isNotEmpty()) query = "" else { expanded = false; navController.popBackStack() }
+                    if (query.isNotEmpty()) query = "" else { active = false; navController.popBackStack() }
                 }) {
                     Icon(Icons.Default.ArrowBack, null)
                 }
@@ -54,59 +55,60 @@ fun SearchScreen(
                     Icon(Icons.Default.Close, null)
                 }
             }
-        },
-        content = {
-            if (query.isBlank()) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(Icons.Default.Search, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Ketuk untuk mencari catatan Anda", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else if (filtered.isEmpty()) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Tidak ditemukan hasil untuk \"$query\"", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                LazyColumn(contentPadding = PaddingValues(8.dp), verticalItemSpacing = 4.dp) {
-                    items(filtered, key = { it.id }) { note ->
-                        val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
-                        Card(
-                            modifier = Modifier.fillMaxWidth().clickable { navController.navigate("edit_note/${note.id}") },
-                            colors = CardColors(
-                                containerColor = noteColors[colorIndex],
-                                contentColor = MaterialTheme.colorScheme.onSurface,
-                                disabledContainerColor = noteColors[colorIndex],
-                                disabledContentColor = MaterialTheme.colorScheme.onSurface
-                            )
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                if (note.title.isNotBlank()) {
-                                    Text(note.title, style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                                }
-                                if (note.content.isNotBlank()) {
-                                    Text(note.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                                Text(
-                                    SimpleDateFormat("dd MMM yyyy").format(Date(note.timestamp)),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
+        }
+    ) {
+        if (query.isBlank()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(Icons.Default.Search, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Ketuk untuk mencari catatan Anda", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else if (filtered.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Tidak ditemukan hasil untuk \"$query\"", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            LazyColumn(contentPadding = PaddingValues(8.dp)) {
+                items(filtered, key = { it.id }) { note ->
+                    val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable { navController.navigate("edit_note/${note.id}") },
+                        colors = CardColors(
+                            containerColor = noteColors[colorIndex],
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            disabledContainerColor = noteColors[colorIndex],
+                            disabledContentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            if (note.title.isNotBlank()) {
+                                Text(note.title, style = MaterialTheme.typography.titleMedium, maxLines = 1)
                             }
+                            if (note.content.isNotBlank()) {
+                                Text(note.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Text(
+                                SimpleDateFormat("dd MMM yyyy").format(Date(note.timestamp)),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
                         }
                     }
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
-    )
+    }
 }
+
