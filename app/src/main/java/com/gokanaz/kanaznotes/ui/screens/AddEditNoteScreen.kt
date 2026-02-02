@@ -1,5 +1,6 @@
 package com.gokanaz.kanaznotes.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -19,7 +20,7 @@ import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddEditNoteScreen(
     noteViewModel: NoteViewModel,
@@ -39,7 +40,6 @@ fun AddEditNoteScreen(
     var showDiscardDialog by remember { mutableStateOf(false) }
     var existingNote by remember { mutableStateOf<NoteEntity?>(null) }
 
-    // Load existing note once when screen first appears
     LaunchedEffect(existingNoteId) {
         if (existingNoteId != null) {
             val note = notes.firstOrNull { it.id == existingNoteId }
@@ -243,4 +243,3 @@ fun AddEditNoteScreen(
         }
     }
 }
-
