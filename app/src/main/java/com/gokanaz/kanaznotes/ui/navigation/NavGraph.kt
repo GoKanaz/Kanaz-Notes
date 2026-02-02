@@ -30,8 +30,7 @@ fun NavGraph(
             )
         }
         composable("edit_note/{noteId}") { backStackEntry ->
-            val noteIdStr = backStackEntry.destination.route?.substringAfter("edit_note/") ?: ""
-            val noteId = noteIdStr.toIntOrNull()
+            val noteId = backStackEntry.arguments?.getString("noteId")?.toIntOrNull()
             AddEditNoteScreen(
                 noteViewModel = noteViewModel,
                 navController = navController,

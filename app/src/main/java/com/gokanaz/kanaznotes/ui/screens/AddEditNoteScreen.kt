@@ -1,6 +1,5 @@
 package com.gokanaz.kanaznotes.ui.screens
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -12,23 +11,23 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.gokanaz.kanaznotes.data.local.NoteEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
+import com.gokanaz.kanaznotes.data.local.NoteEntity
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditNoteScreen(
     noteViewModel: NoteViewModel,
     navController: NavHostController,
     existingNoteId: Int?
 ) {
-    var existingNote by remember { mutableStateOf<NoteEntity?>(null) }
+    val notes by noteViewModel.allNotes.collectAsState(initial = emptyList())
+
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var color by remember { mutableStateOf(0) }
@@ -38,9 +37,12 @@ fun AddEditNoteScreen(
     var showMoreMenu by remember { mutableStateOf(false) }
     var hasChanges by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
+    var existingNote by remember { mutableStateOf<NoteEntity?>(null) }
+
+    // Load existing note once when screen first appears
     LaunchedEffect(existingNoteId) {
         if (existingNoteId != null) {
-            val note = noteViewModel.getNoteById(existingNoteId)
+            val note = notes.firstOrNull { it.id == existingNoteId }
             if (note != null) {
                 existingNote = note
                 title = note.title
@@ -83,11 +85,8 @@ fun AddEditNoteScreen(
     }
 
     fun onBack() {
-        if (hasChanges) {
-            showDiscardDialog = true
-        } else {
-            navController.popBackStack()
-        }
+        if (hasChanges) showDiscardDialog = true
+        else navController.popBackStack()
     }
 
     if (showDiscardDialog) {
@@ -170,9 +169,7 @@ fun AddEditNoteScreen(
         },
         bottomBar = {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { showColorPicker = !showColorPicker }) {
@@ -186,10 +183,7 @@ fun AddEditNoteScreen(
         }
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
         ) {
             if (showColorPicker) {
                 Row(
@@ -249,3 +243,4 @@ fun AddEditNoteScreen(
         }
     }
 }
+
