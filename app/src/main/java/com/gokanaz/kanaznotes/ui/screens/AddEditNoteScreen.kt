@@ -60,7 +60,8 @@ fun AddEditNoteScreen(
         }
     }
 
-    val cardColor = if (isDark) noteColorsDark.getOrElse(color) { noteColorsDark[0] } else noteColors.getOrElse(color) { noteColors[0] }
+    val cardColor = getCardColor(color, isDark)
+    val textColor = getTextColor(color, isDark)
 
     fun saveNote() {
         if (title.isBlank() && content.isBlank()) {
@@ -116,7 +117,7 @@ fun AddEditNoteScreen(
                 title = {},
                 navigationIcon = {
                     IconButton(onClick = { onBack() }) {
-                        Icon(Icons.Default.ArrowBack, null, tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.Default.ArrowBack, null, tint = textColor)
                     }
                 },
                 actions = {
@@ -124,10 +125,10 @@ fun AddEditNoteScreen(
                         isPinned = !isPinned
                         hasChanges = true
                     }) {
-                        Icon(if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null, tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null, tint = textColor)
                     }
                     IconButton(onClick = { showMoreMenu = true }) {
-                        Icon(Icons.Default.MoreVert, null, tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.Default.MoreVert, null, tint = textColor)
                     }
                     DropdownMenu(
                         expanded = showMoreMenu,
@@ -167,9 +168,9 @@ fun AddEditNoteScreen(
                 colors = TopAppBarColors(
                     containerColor = cardColor,
                     scrolledContainerColor = cardColor,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                    navigationIconContentColor = textColor,
+                    titleContentColor = textColor,
+                    actionIconContentColor = textColor
                 )
             )
         },
@@ -179,11 +180,11 @@ fun AddEditNoteScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { showColorPicker = !showColorPicker }) {
-                    Icon(Icons.Outlined.Circle, null, tint = MaterialTheme.colorScheme.onSurface)
+                    Icon(Icons.Outlined.Circle, null, tint = textColor)
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = { saveNote() }) {
-                    Icon(Icons.Outlined.Check, null, tint = MaterialTheme.colorScheme.onSurface)
+                    Icon(Icons.Outlined.Check, null, tint = textColor)
                 }
             }
         }
@@ -220,13 +221,13 @@ fun AddEditNoteScreen(
                 value = title,
                 onValueChange = { title = it; hasChanges = true },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                textStyle = MaterialTheme.typography.displaySmall.copy(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
+                cursorBrush = SolidColor(textColor),
                 singleLine = true,
                 decorationBox = { innerTextField ->
                     Box {
                         if (title.isEmpty()) {
-                            Text("Judul", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
+                            Text("Judul", style = MaterialTheme.typography.displaySmall, color = textColor.copy(alpha = 0.4f))
                         }
                         innerTextField()
                     }
@@ -237,12 +238,12 @@ fun AddEditNoteScreen(
                 value = content,
                 onValueChange = { content = it; hasChanges = true },
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
+                cursorBrush = SolidColor(textColor),
                 decorationBox = { innerTextField ->
                     Box {
                         if (content.isEmpty()) {
-                            Text("Tambah catatan...", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
+                            Text("Tambah catatan...", style = MaterialTheme.typography.bodyLarge, color = textColor.copy(alpha = 0.4f))
                         }
                         innerTextField()
                     }

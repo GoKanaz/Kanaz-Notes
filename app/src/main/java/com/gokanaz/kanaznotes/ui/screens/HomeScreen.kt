@@ -28,7 +28,7 @@ import java.util.Date
 import kotlinx.coroutines.launch
 
 val noteColors = listOf(
-    Color(0xFFFFFBFE),
+    Color(0xFFF5F5F5),
     Color(0xFFFFF9C4),
     Color(0xFFE8F5E9),
     Color(0xFFE3F2FD),
@@ -39,7 +39,7 @@ val noteColors = listOf(
 )
 
 val noteColorsDark = listOf(
-    Color(0xFF1C1B1F),
+    Color(0xFF2C2C2C),
     Color(0xFF3E3A2F),
     Color(0xFF2D3A2E),
     Color(0xFF2A3441),
@@ -48,6 +48,15 @@ val noteColorsDark = listOf(
     Color(0xFF3A332C),
     Color(0xFF2C3839)
 )
+
+fun getCardColor(colorIndex: Int, isDark: Boolean): Color {
+    val index = colorIndex.coerceIn(0, noteColors.size - 1)
+    return if (isDark) noteColorsDark[index] else noteColors[index]
+}
+
+fun getTextColor(colorIndex: Int, isDark: Boolean): Color {
+    return if (isDark) Color(0xFFE0E0E0) else Color(0xFF1C1C1C)
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -64,6 +73,7 @@ fun HomeScreen(
     var selectedNotes by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var showColorPicker by remember { mutableStateOf(false) }
     var noteForColor by remember { mutableStateOf<NoteEntity?>(null) }
+    val isDark = isSystemInDarkTheme()
 
     if (showDeleteDialog && noteToDelete != null) {
         AlertDialog(
@@ -84,7 +94,6 @@ fun HomeScreen(
     }
 
     if (showColorPicker && noteForColor != null) {
-        val isDark = isSystemInDarkTheme()
         AlertDialog(
             onDismissRequest = { showColorPicker = false },
             title = { Text("Pilih Warna") },
@@ -284,6 +293,7 @@ fun HomeScreen(
                             NoteCard(
                                 note = note,
                                 isSelected = note.id in selectedNotes,
+                                isDark = isDark,
                                 onLongClick = { selectedNotes = selectedNotes + note.id },
                                 onClick = {
                                     if (selectedNotes.isNotEmpty()) {
@@ -314,6 +324,7 @@ fun HomeScreen(
                         NoteCard(
                             note = note,
                             isSelected = note.id in selectedNotes,
+                            isDark = isDark,
                             onLongClick = { selectedNotes = selectedNotes + note.id },
                             onClick = {
                                 if (selectedNotes.isNotEmpty()) {
@@ -341,20 +352,20 @@ fun HomeScreen(
 fun NoteCard(
     note: NoteEntity,
     isSelected: Boolean,
+    isDark: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onArchive: () -> Unit,
     onPin: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
-    val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
     val cardColor by animateColorAsState(
         targetValue = if (isSelected) {
             MaterialTheme.colorScheme.surfaceVariant
         } else {
-            if (isDark) noteColorsDark[colorIndex] else noteColors[colorIndex]
+            getCardColor(note.color, isDark)
         }
     )
+    val textColor = getTextColor(note.color, isDark)
     val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm")
     val formattedDate = dateFormat.format(Date(note.timestamp))
 
@@ -367,9 +378,9 @@ fun NoteCard(
             ),
         colors = CardColors(
             containerColor = cardColor,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            contentColor = textColor,
             disabledContainerColor = cardColor,
-            disabledContentColor = MaterialTheme.colorScheme.onSurface
+            disabledContentColor = textColor
         )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -385,7 +396,7 @@ fun NoteCard(
                         maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = textColor
                     )
                 }
                 Row {
@@ -405,14 +416,14 @@ fun NoteCard(
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 3,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = textColor.copy(alpha = 0.8f)
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 formattedDate,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                color = textColor.copy(alpha = 0.6f)
             )
         }
     }

@@ -101,8 +101,8 @@ fun TemplateScreen(
                 contentPadding = PaddingValues(16.dp)
             ) {
                 items(templates, key = { it.id }) { template ->
-                    val colorIndex = template.color.coerceIn(0, noteColors.size - 1)
-                    val cardColor = if (isDark) noteColorsDark[colorIndex] else noteColors[colorIndex]
+                    val cardColor = getCardColor(template.color, isDark)
+                    val textColor = getTextColor(template.color, isDark)
                     
                     Card(
                         modifier = Modifier
@@ -118,9 +118,9 @@ fun TemplateScreen(
                             ),
                         colors = CardColors(
                             containerColor = cardColor,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            contentColor = textColor,
                             disabledContainerColor = cardColor,
-                            disabledContentColor = MaterialTheme.colorScheme.onSurface
+                            disabledContentColor = textColor
                         )
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
@@ -133,7 +133,7 @@ fun TemplateScreen(
                                     template.title.ifBlank { "(Tanpa Judul)" },
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.weight(1f),
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = textColor
                                 )
                                 Icon(
                                     Icons.Outlined.Description,
@@ -148,14 +148,14 @@ fun TemplateScreen(
                                     template.content,
                                     style = MaterialTheme.typography.bodyMedium,
                                     maxLines = 2,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                    color = textColor.copy(alpha = 0.8f)
                                 )
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 SimpleDateFormat("dd MMM yyyy").format(Date(template.timestamp)),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                color = textColor.copy(alpha = 0.6f)
                             )
                         }
                     }

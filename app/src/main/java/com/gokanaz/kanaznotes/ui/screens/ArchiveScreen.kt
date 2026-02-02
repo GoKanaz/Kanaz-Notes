@@ -96,14 +96,15 @@ fun ArchiveScreen(
                 contentPadding = PaddingValues(16.dp)
             ) {
                 items(archivedNotes, key = { it.id }) { note ->
-                    val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
-                    val cardColor = if (isDark) noteColorsDark[colorIndex] else noteColors[colorIndex]
+                    val cardColor = getCardColor(note.color, isDark)
+                    val textColor = getTextColor(note.color, isDark)
+                    
                     Card(
                         colors = CardColors(
                             containerColor = cardColor,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            contentColor = textColor,
                             disabledContainerColor = cardColor,
-                            disabledContentColor = MaterialTheme.colorScheme.onSurface
+                            disabledContentColor = textColor
                         )
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
@@ -116,14 +117,14 @@ fun ArchiveScreen(
                                     note.title.ifBlank { "(Tanpa Judul)" }, 
                                     style = MaterialTheme.typography.titleMedium, 
                                     modifier = Modifier.weight(1f),
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = textColor
                                 )
                                 Row {
                                     IconButton(onClick = { noteToRestore = note; showRestoreDialog = true }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Filled.Unarchive, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
+                                        Icon(Icons.Filled.Unarchive, null, modifier = Modifier.size(20.dp), tint = textColor)
                                     }
                                     IconButton(onClick = { noteToDelete = note; showDeleteDialog = true }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Filled.Delete, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
+                                        Icon(Icons.Filled.Delete, null, modifier = Modifier.size(20.dp), tint = textColor)
                                     }
                                 }
                             }
@@ -132,14 +133,14 @@ fun ArchiveScreen(
                                     note.content, 
                                     style = MaterialTheme.typography.bodyMedium, 
                                     maxLines = 2, 
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                    color = textColor.copy(alpha = 0.8f)
                                 )
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 SimpleDateFormat("dd MMM yyyy").format(Date(note.timestamp)),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                color = textColor.copy(alpha = 0.6f)
                             )
                         }
                     }
