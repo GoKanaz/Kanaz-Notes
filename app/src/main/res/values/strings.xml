@@ -1,3 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kanaz Notes</string>
+    <string name="app_name">KanazNotes</string>
+    <string name="add_note">Add Note</string>
+    <string name="edit_note">Edit Note</string>
+    <string name="title_hint">Title</string>
+    <string name="content_hint">Add note…</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="archive">Archive</string>
+    <string name="search">Search</string>
+    <string name="settings">Settings</string>
+    <string name="templates">Templates</string>
+    <string name="discard_changes">Discard Changes?</string>
+    <string name="discard_message">Your changes will not be saved.</string>
+    <string name="discard">Discard</string>
+    <string name="continue_editing">Continue Editing</string>
+    <string name="save_as_template">Save as Template</string>
+    <string name="remove_from_template">Remove from Template</string>
+    <string name="language">Language</string>
+    <string name="english">English</string>
+    <string name="indonesian">Bahasa Indonesia</string>
 </resources>
