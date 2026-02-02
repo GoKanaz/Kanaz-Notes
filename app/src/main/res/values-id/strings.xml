@@ -1,23 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KanazNotes</string>
-    <string name="add_note">Tambah Catatan</string>
-    <string name="edit_note">Edit Catatan</string>
-    <string name="title_hint">Judul</string>
-    <string name="content_hint">Tambah catatan…</string>
-    <string name="save">Simpan</string>
-    <string name="delete">Hapus</string>
-    <string name="archive">Arsip</string>
-    <string name="search">Cari</string>
-    <string name="settings">Pengaturan</string>
-    <string name="templates">Template</string>
-    <string name="discard_changes">Buang Perubahan?</string>
-    <string name="discard_message">Perubahan yang Anda buat tidak akan disimpan.</string>
-    <string name="discard">Buang</string>
-    <string name="continue_editing">Lanjut Edit</string>
-    <string name="save_as_template">Simpan sebagai Template</string>
-    <string name="remove_from_template">Hapus dari Template</string>
-    <string name="language">Bahasa</string>
-    <string name="english">English</string>
-    <string name="indonesian">Bahasa Indonesia</string>
+    <string name="app_name">Kanaz Notes</string>
 </resources>
