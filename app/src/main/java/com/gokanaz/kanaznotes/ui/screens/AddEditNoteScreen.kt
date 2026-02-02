@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.data.local.NoteEntity
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -27,7 +28,7 @@ fun AddEditNoteScreen(
     navController: NavHostController,
     existingNoteId: Int?
 ) {
-    val notes by noteViewModel.allNotes.collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
 
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
@@ -42,14 +43,16 @@ fun AddEditNoteScreen(
 
     LaunchedEffect(existingNoteId) {
         if (existingNoteId != null) {
-            val note = notes.firstOrNull { it.id == existingNoteId }
-            if (note != null) {
-                existingNote = note
-                title = note.title
-                content = note.content
-                color = note.color
-                isPinned = note.isPinned
-                isTemplate = note.isTemplate
+            scope.launch {
+                val note = noteViewModel.getNoteById(existingNoteId)
+                if (note != null) {
+                    existingNote = note
+                    title = note.title
+                    content = note.content
+                    color = note.color
+                    isPinned = note.isPinned
+                    isTemplate = note.isTemplate
+                }
             }
         }
     }
