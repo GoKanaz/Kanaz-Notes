@@ -79,8 +79,10 @@ class SettingsViewModel : ViewModel() {
 
     private val _isPasswordEnabled = MutableStateFlow(kv.decodeBool("isPasswordEnabled", false))
     val isPasswordEnabled: StateFlow<Boolean> = _isPasswordEnabled
+    
     fun setPassword(value: String) {
         kv.encode("password", value)
+        kv.encode("isPasswordEnabled", true)
         _isPasswordEnabled.value = true
     }
 

@@ -17,8 +17,11 @@ import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModelFactory
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 import com.tencent.mmkv.MMKV
+import android.view.WindowManager
 
 class MainActivity : ComponentActivity() {
+    private lateinit var settingsViewModel: SettingsViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -29,7 +32,7 @@ class MainActivity : ComponentActivity() {
         val factory = NoteViewModelFactory(repository)
 
         setContent {
-            val settingsViewModel: SettingsViewModel = viewModel()
+            settingsViewModel = viewModel()
             val noteViewModel: NoteViewModel = viewModel(factory = factory)
             val navController = rememberNavController()
 
@@ -44,6 +47,23 @@ class MainActivity : ComponentActivity() {
                         settingsViewModel = settingsViewModel
                     )
                 }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::settingsViewModel.isInitialized) {
+            val kv = MMKV.defaultMMKV()
+            val isScreenProtectionEnabled = kv.decodeBool("isScreenProtectionEnabled", false)
+            
+            if (isScreenProtectionEnabled) {
+                window.setFlags(
+                    WindowManager.LayoutParams.FLAG_SECURE,
+                    WindowManager.LayoutParams.FLAG_SECURE
+                )
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
             }
         }
     }
