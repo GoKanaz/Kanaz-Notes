@@ -60,8 +60,9 @@ fun AddEditNoteScreen(
         }
     }
 
-    val cardColor = getCardColor(color, isDark)
-    val textColor = getTextColor(color, isDark)
+    val backgroundColor = if (isDark) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surface
+    val textColor = MaterialTheme.colorScheme.onBackground
+    val iconColor = MaterialTheme.colorScheme.onSurface
 
     fun saveNote() {
         if (title.isBlank() && content.isBlank()) {
@@ -111,13 +112,13 @@ fun AddEditNoteScreen(
     }
 
     Scaffold(
-        containerColor = cardColor,
+        containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = {},
                 navigationIcon = {
                     IconButton(onClick = { onBack() }) {
-                        Icon(Icons.Default.ArrowBack, null, tint = textColor)
+                        Icon(Icons.Default.ArrowBack, null, tint = iconColor)
                     }
                 },
                 actions = {
@@ -125,10 +126,10 @@ fun AddEditNoteScreen(
                         isPinned = !isPinned
                         hasChanges = true
                     }) {
-                        Icon(if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null, tint = textColor)
+                        Icon(if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null, tint = iconColor)
                     }
                     IconButton(onClick = { showMoreMenu = true }) {
-                        Icon(Icons.Default.MoreVert, null, tint = textColor)
+                        Icon(Icons.Default.MoreVert, null, tint = iconColor)
                     }
                     DropdownMenu(
                         expanded = showMoreMenu,
@@ -166,31 +167,39 @@ fun AddEditNoteScreen(
                     }
                 },
                 colors = TopAppBarColors(
-                    containerColor = cardColor,
-                    scrolledContainerColor = cardColor,
-                    navigationIconContentColor = textColor,
-                    titleContentColor = textColor,
-                    actionIconContentColor = textColor
+                    containerColor = backgroundColor,
+                    scrolledContainerColor = backgroundColor,
+                    navigationIconContentColor = iconColor,
+                    titleContentColor = iconColor,
+                    actionIconContentColor = iconColor
                 )
             )
         },
         bottomBar = {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                color = backgroundColor,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                IconButton(onClick = { showColorPicker = !showColorPicker }) {
-                    Icon(Icons.Outlined.Circle, null, tint = textColor)
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { saveNote() }) {
-                    Icon(Icons.Outlined.Check, null, tint = textColor)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { showColorPicker = !showColorPicker }) {
+                        Icon(Icons.Outlined.Circle, null, tint = iconColor)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = { saveNote() }) {
+                        Icon(Icons.Outlined.Check, null, tint = iconColor)
+                    }
                 }
             }
         }
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp)
         ) {
             if (showColorPicker) {
                 Row(
@@ -222,12 +231,16 @@ fun AddEditNoteScreen(
                 onValueChange = { title = it; hasChanges = true },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                 textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
-                cursorBrush = SolidColor(textColor),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 singleLine = true,
                 decorationBox = { innerTextField ->
                     Box {
                         if (title.isEmpty()) {
-                            Text("Judul", style = MaterialTheme.typography.displaySmall, color = textColor.copy(alpha = 0.4f))
+                            Text(
+                                "Judul", 
+                                style = MaterialTheme.typography.displaySmall, 
+                                color = textColor.copy(alpha = 0.4f)
+                            )
                         }
                         innerTextField()
                     }
@@ -239,11 +252,15 @@ fun AddEditNoteScreen(
                 onValueChange = { content = it; hasChanges = true },
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
-                cursorBrush = SolidColor(textColor),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 decorationBox = { innerTextField ->
                     Box {
                         if (content.isEmpty()) {
-                            Text("Tambah catatan...", style = MaterialTheme.typography.bodyLarge, color = textColor.copy(alpha = 0.4f))
+                            Text(
+                                "Tambah catatan...", 
+                                style = MaterialTheme.typography.bodyLarge, 
+                                color = textColor.copy(alpha = 0.4f)
+                            )
                         }
                         innerTextField()
                     }
