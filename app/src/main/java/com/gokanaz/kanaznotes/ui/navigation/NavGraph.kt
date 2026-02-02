@@ -2,9 +2,9 @@ package com.gokanaz.kanaznotes.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.NavType
 import androidx.navigation.compose.navArgument
 import com.gokanaz.kanaznotes.ui.screens.*
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
@@ -33,7 +33,9 @@ fun NavGraph(
         }
         composable(
             route = "edit_note/{noteId}",
-            arguments = listOf(navArgument("noteId") { type = NavType.IntType })
+            arguments = listOf(
+                navArgument("noteId") { type = NavType.IntType }
+            )
         ) { backStackEntry ->
             val noteId = backStackEntry.arguments?.getInt("noteId") ?: return@composable
             AddEditNoteScreen(
@@ -92,3 +94,4 @@ fun NavGraph(
         }
     }
 }
+
