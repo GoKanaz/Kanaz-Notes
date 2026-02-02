@@ -145,9 +145,9 @@ fun AddEditNoteScreen(
         triggerAutoSave()
     }
 
-    val backgroundColor = if (isDark) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surface
-    val textColor = MaterialTheme.colorScheme.onBackground
-    val iconColor = MaterialTheme.colorScheme.onSurface
+    val backgroundColor = getCardColor(color, isDark)
+    val textColor = getTextColor(color, isDark)
+    val iconColor = if (isDark) Color(0xFFE0E0E0) else Color(0xFF1C1C1C)
 
     if (showDiscardDialog) {
         AlertDialog(
