@@ -1,5 +1,6 @@
 package com.gokanaz.kanaznotes.data.repository
 
+import com.gokanaz.kanaznotes.data.local.LabelEntity
 import com.gokanaz.kanaznotes.data.local.NoteDao
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 import kotlinx.coroutines.flow.Flow
@@ -32,5 +33,21 @@ class NoteRepository(private val noteDao: NoteDao) {
 
     suspend fun getNoteById(id: Int): NoteEntity? {
         return noteDao.getNoteById(id)
+    }
+
+    fun getNotesByLabel(label: String): Flow<List<NoteEntity>> {
+        return noteDao.getNotesByLabel(label)
+    }
+
+    suspend fun insertLabel(label: LabelEntity) {
+        noteDao.insertLabel(label)
+    }
+
+    suspend fun deleteLabel(label: LabelEntity) {
+        noteDao.deleteLabel(label)
+    }
+
+    fun getAllLabels(): Flow<List<LabelEntity>> {
+        return noteDao.getAllLabels()
     }
 }

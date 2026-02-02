@@ -26,9 +26,21 @@ interface NoteDao {
     @Query("SELECT * FROM notes_table WHERE id = :id")
     suspend fun getNoteById(id: Int): NoteEntity?
 
+    @Query("SELECT * FROM notes_table WHERE labels LIKE '%' || :label || '%' AND isDeleted = 0 AND isTemplate = 0")
+    fun getNotesByLabel(label: String): Flow<List<NoteEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFolder(folder: FolderEntity)
 
     @Query("SELECT * FROM folders_table")
     fun getAllFolders(): Flow<List<FolderEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLabel(label: LabelEntity)
+
+    @Delete
+    suspend fun deleteLabel(label: LabelEntity)
+
+    @Query("SELECT * FROM labels_table ORDER BY name ASC")
+    fun getAllLabels(): Flow<List<LabelEntity>>
 }
