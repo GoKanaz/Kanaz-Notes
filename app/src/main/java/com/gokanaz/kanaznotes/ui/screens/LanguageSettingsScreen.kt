@@ -7,14 +7,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.MainActivity
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,11 +33,26 @@ fun LanguageSettingsScreen(
         "id" to "Bahasa Indonesia"
     )
     
-    fun restartApp() {
-        val intent = Intent(context, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        context.startActivity(intent)
-        (context as? Activity)?.finish()
+    fun changeLanguageAndRestart(newLang: String) {
+        if (language != newLang) {
+            settingsViewModel.setLanguage(newLang)
+            
+            val locale = when(newLang) {
+                "id" -> Locale("id", "ID")
+                else -> Locale("en", "US")
+            }
+            Locale.setDefault(locale)
+            
+            val config = context.resources.configuration
+            config.setLocale(locale)
+            context.resources.updateConfiguration(config, context.resources.displayMetrics)
+            
+            val intent = Intent(context, MainActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            context.startActivity(intent)
+            (context as? Activity)?.finish()
+            Runtime.getRuntime().exit(0)
+        }
     }
 
     Scaffold(
@@ -43,7 +61,7 @@ fun LanguageSettingsScreen(
                 title = { Text("Bahasa") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, null)
+                        Icon(Icons.Default.ArrowBack, contentDescription = null)
                     }
                 }
             )
@@ -57,27 +75,29 @@ fun LanguageSettingsScreen(
                 Card {
                     Column {
                         languages.forEachIndexed { index, (code, name) ->
-                            ListItem(
-                                headlineContent = { Text(name) },
-                                supportingContent = { Text(code.uppercase()) },
-                                trailingContent = {
-                                    RadioButton(
-                                        selected = language == code,
-                                        onClick = { 
-                                            if (language != code) {
-                                                settingsViewModel.setLanguage(code)
-                                                restartApp()
-                                            }
-                                        }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { changeLanguageAndRestart(code) }
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = name,
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
-                                },
-                                modifier = Modifier.clickable { 
-                                    if (language != code) {
-                                        settingsViewModel.setLanguage(code)
-                                        restartApp()
-                                    }
+                                    Text(
+                                        text = code.uppercase(),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
-                            )
+                                RadioButton(
+                                    selected = language == code,
+                                    onClick = { changeLanguageAndRestart(code) }
+                                )
+                            }
                             if (index < languages.size - 1) {
                                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                             }

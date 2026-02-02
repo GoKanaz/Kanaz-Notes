@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Kanaz Notes</string>
+    <string name="settings">Pengaturan</string>
+    <string name="language">Bahasa</string>
+    <string name="language_settings">Pengaturan Bahasa</string>
+    <string name="style_theme">Gaya &amp; Tema</string>
+    <string name="style_desc">Gelap, terang, dan warna</string>
+    <string name="language_desc">Pengaturan bahasa aplikasi</string>
+    <string name="security">Keamanan</string>
+    <string name="security_desc">Kata sandi dan perlindungan</string>
+    <string name="cloud_settings">Pengaturan Cloud</string>
+    <string name="cloud_desc">WebDAV dan sinkronisasi</string>
+    <string name="english">English</string>
+    <string name="indonesian">Bahasa Indonesia</string>
+    <string name="appearance">Tampilan</string>
+    <string name="general">Umum</string>
+    <string name="sync">Sinkronisasi</string>
 </resources>
