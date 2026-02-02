@@ -173,7 +173,7 @@ fun PasswordSetupDialog(
                     label = { Text("PIN (minimal 4 digit)") },
                     singleLine = true,
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPad),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
                             Icon(
@@ -196,7 +196,7 @@ fun PasswordSetupDialog(
                     label = { Text("Konfirmasi PIN") },
                     singleLine = true,
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPad),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     isError = errorMessage.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth()
                 )
