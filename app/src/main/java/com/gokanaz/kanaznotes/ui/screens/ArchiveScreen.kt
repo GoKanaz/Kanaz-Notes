@@ -1,5 +1,6 @@
 package com.gokanaz.kanaznotes.ui.screens
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +25,7 @@ fun ArchiveScreen(
     navController: NavHostController
 ) {
     val archivedNotes by noteViewModel.archivedNotes.collectAsState(initial = emptyList())
+    val isDark = isSystemInDarkTheme()
     var showRestoreDialog by remember { mutableStateOf(false) }
     var noteToRestore by remember { mutableStateOf<NoteEntity?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -95,11 +97,12 @@ fun ArchiveScreen(
             ) {
                 items(archivedNotes, key = { it.id }) { note ->
                     val colorIndex = note.color.coerceIn(0, noteColors.size - 1)
+                    val cardColor = if (isDark) noteColorsDark[colorIndex] else noteColors[colorIndex]
                     Card(
                         colors = CardColors(
-                            containerColor = noteColors[colorIndex],
+                            containerColor = cardColor,
                             contentColor = MaterialTheme.colorScheme.onSurface,
-                            disabledContainerColor = noteColors[colorIndex],
+                            disabledContainerColor = cardColor,
                             disabledContentColor = MaterialTheme.colorScheme.onSurface
                         )
                     ) {
@@ -109,24 +112,34 @@ fun ArchiveScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(note.title.ifBlank { "(Tanpa Judul)" }, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                                Text(
+                                    note.title.ifBlank { "(Tanpa Judul)" }, 
+                                    style = MaterialTheme.typography.titleMedium, 
+                                    modifier = Modifier.weight(1f),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                                 Row {
                                     IconButton(onClick = { noteToRestore = note; showRestoreDialog = true }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Filled.Unarchive, null, modifier = Modifier.size(20.dp))
+                                        Icon(Icons.Filled.Unarchive, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
                                     }
                                     IconButton(onClick = { noteToDelete = note; showDeleteDialog = true }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Filled.Delete, null, modifier = Modifier.size(20.dp))
+                                        Icon(Icons.Filled.Delete, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
                                     }
                                 }
                             }
                             if (note.content.isNotBlank()) {
-                                Text(note.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    note.content, 
+                                    style = MaterialTheme.typography.bodyMedium, 
+                                    maxLines = 2, 
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 SimpleDateFormat("dd MMM yyyy").format(Date(note.timestamp)),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                         }
                     }
@@ -136,4 +149,3 @@ fun ArchiveScreen(
         }
     }
 }
-

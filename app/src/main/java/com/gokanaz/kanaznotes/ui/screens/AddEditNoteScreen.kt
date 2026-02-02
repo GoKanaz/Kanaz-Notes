@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
@@ -15,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
@@ -29,6 +31,7 @@ fun AddEditNoteScreen(
     existingNoteId: Int?
 ) {
     val scope = rememberCoroutineScope()
+    val isDark = isSystemInDarkTheme()
 
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
@@ -57,7 +60,7 @@ fun AddEditNoteScreen(
         }
     }
 
-    val cardColor = noteColors.getOrElse(color) { Color.White }
+    val cardColor = if (isDark) noteColorsDark.getOrElse(color) { noteColorsDark[0] } else noteColors.getOrElse(color) { noteColors[0] }
 
     fun saveNote() {
         if (title.isBlank() && content.isBlank()) {
@@ -113,7 +116,7 @@ fun AddEditNoteScreen(
                 title = {},
                 navigationIcon = {
                     IconButton(onClick = { onBack() }) {
-                        Icon(Icons.Default.ArrowBack, null)
+                        Icon(Icons.Default.ArrowBack, null, tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 actions = {
@@ -121,10 +124,10 @@ fun AddEditNoteScreen(
                         isPinned = !isPinned
                         hasChanges = true
                     }) {
-                        Icon(if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
+                        Icon(if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null, tint = MaterialTheme.colorScheme.onSurface)
                     }
                     IconButton(onClick = { showMoreMenu = true }) {
-                        Icon(Icons.Default.MoreVert, null)
+                        Icon(Icons.Default.MoreVert, null, tint = MaterialTheme.colorScheme.onSurface)
                     }
                     DropdownMenu(
                         expanded = showMoreMenu,
@@ -218,11 +221,12 @@ fun AddEditNoteScreen(
                 onValueChange = { title = it; hasChanges = true },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                 textStyle = MaterialTheme.typography.displaySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 singleLine = true,
                 decorationBox = { innerTextField ->
                     Box {
                         if (title.isEmpty()) {
-                            Text("Judul", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Judul", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
                         }
                         innerTextField()
                     }
@@ -234,10 +238,11 @@ fun AddEditNoteScreen(
                 onValueChange = { content = it; hasChanges = true },
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 decorationBox = { innerTextField ->
                     Box {
                         if (content.isEmpty()) {
-                            Text("Tambah catatan...", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Tambah catatan...", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
                         }
                         innerTextField()
                     }

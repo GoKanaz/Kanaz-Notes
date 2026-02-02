@@ -1,5 +1,8 @@
 package com.gokanaz.kanaznotes.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,39 +17,44 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TemplateScreen(
     noteViewModel: NoteViewModel,
     navController: NavHostController
 ) {
     val templates by noteViewModel.templates.collectAsState(initial = emptyList())
-    var showUseDialog by remember { mutableStateOf(false) }
+    val isDark = isSystemInDarkTheme()
+    var showUseTemplateDialog by remember { mutableStateOf(false) }
     var selectedTemplate by remember { mutableStateOf<NoteEntity?>(null) }
 
-    if (showUseDialog && selectedTemplate != null) {
+    if (showUseTemplateDialog && selectedTemplate != null) {
         AlertDialog(
-            onDismissRequest = { showUseDialog = false },
+            onDismissRequest = { showUseTemplateDialog = false },
             title = { Text("Gunakan Template") },
-            text = { Text("Buat catatan baru dari template \"${selectedTemplate!!.title}\"?") },
+            text = { Text("Buat catatan baru dari template ini?") },
             confirmButton = {
                 TextButton(onClick = {
-                    val newNote = NoteEntity(
-                        title = selectedTemplate!!.title,
-                        content = selectedTemplate!!.content,
-                        color = selectedTemplate!!.color,
-                        timestamp = System.currentTimeMillis(),
-                        isTemplate = false
+                    val newNote = selectedTemplate!!.copy(
+                        id = 0,
+                        isTemplate = false,
+                        timestamp = System.currentTimeMillis()
                     )
                     noteViewModel.insertNote(newNote)
-                    showUseDialog = false
+                    showUseTemplateDialog = false
                     selectedTemplate = null
                     navController.popBackStack()
-                }) { Text("Buat") }
+                }) {
+                    Text("Gunakan")
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showUseDialog = false }) { Text("Batal") }
+                TextButton(onClick = { showUseTemplateDialog = false }) {
+                    Text("Batal")
+                }
             }
         )
     }
@@ -69,10 +77,23 @@ fun TemplateScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Icon(Icons.Outlined.Description, null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(
+                    Icons.Outlined.Description,
+                    null,
+                    modifier = Modifier.size(56.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Belum ada template", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Simpan catatan sebagai template dari layar edit", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "Belum ada template",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    "Template akan muncul di sini",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         } else {
             LazyColumn(
@@ -81,41 +102,61 @@ fun TemplateScreen(
             ) {
                 items(templates, key = { it.id }) { template ->
                     val colorIndex = template.color.coerceIn(0, noteColors.size - 1)
+                    val cardColor = if (isDark) noteColorsDark[colorIndex] else noteColors[colorIndex]
+                    
                     Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    selectedTemplate = template
+                                    showUseTemplateDialog = true
+                                },
+                                onLongClick = {
+                                    navController.navigate("edit_note/${template.id}")
+                                }
+                            ),
                         colors = CardColors(
-                            containerColor = noteColors[colorIndex],
+                            containerColor = cardColor,
                             contentColor = MaterialTheme.colorScheme.onSurface,
-                            disabledContainerColor = noteColors[colorIndex],
+                            disabledContainerColor = cardColor,
                             disabledContentColor = MaterialTheme.colorScheme.onSurface
                         )
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(template.title, style = MaterialTheme.typography.titleMedium)
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    IconButton(
-                                        onClick = { noteViewModel.deleteNote(template) },
-                                        modifier = Modifier.size(36.dp)
-                                    ) {
-                                        Icon(Icons.Filled.Delete, null, modifier = Modifier.size(18.dp))
-                                    }
-                                    Button(
-                                        onClick = { selectedTemplate = template; showUseDialog = true },
-                                        modifier = Modifier.height(32.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp)
-                                    ) {
-                                        Text("Gunakan", style = MaterialTheme.typography.labelMedium)
-                                    }
-                                }
+                                Text(
+                                    template.title.ifBlank { "(Tanpa Judul)" },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.weight(1f),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Icon(
+                                    Icons.Outlined.Description,
+                                    null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
                             }
                             if (template.content.isNotBlank()) {
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(template.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    template.content,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 2,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
                             }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                SimpleDateFormat("dd MMM yyyy").format(Date(template.timestamp)),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -124,4 +165,3 @@ fun TemplateScreen(
         }
     }
 }
-
