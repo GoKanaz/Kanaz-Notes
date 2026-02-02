@@ -68,15 +68,6 @@ fun AddEditNoteScreen(
 
     val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            imageUris = imageUris + it.toString()
-            triggerAutoSave()
-        }
-    }
-
     fun triggerAutoSave() {
         autoSaveJob?.cancel()
         autoSaveJob = scope.launch {
@@ -115,6 +106,15 @@ fun AddEditNoteScreen(
                 delay(500)
                 isSaving = false
             }
+        }
+    }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            imageUris = imageUris + it.toString()
+            triggerAutoSave()
         }
     }
 
