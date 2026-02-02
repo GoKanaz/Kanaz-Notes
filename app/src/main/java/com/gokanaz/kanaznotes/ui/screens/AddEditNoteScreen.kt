@@ -35,6 +35,7 @@ import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -60,7 +61,7 @@ fun AddEditNoteScreen(
     var showLabelDialog by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
     var existingNote by remember { mutableStateOf<NoteEntity?>(null) }
-    var autoSaveJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var autoSaveJob by remember { mutableStateOf<Job?>(null) }
     var isSaving by remember { mutableStateOf(false) }
 
     val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
@@ -70,29 +71,11 @@ fun AddEditNoteScreen(
     ) { uri: Uri? ->
         uri?.let {
             imageUris = imageUris + it.toString()
-            autoSave()
+            triggerAutoSave()
         }
     }
 
-    LaunchedEffect(existingNoteId) {
-        if (existingNoteId != null) {
-            scope.launch {
-                val note = noteViewModel.getNoteById(existingNoteId)
-                if (note != null) {
-                    existingNote = note
-                    title = note.title
-                    content = note.content
-                    color = note.color
-                    isPinned = note.isPinned
-                    isTemplate = note.isTemplate
-                    selectedLabels = note.labels.split(",").filter { it.isNotBlank() }.toSet()
-                    imageUris = note.images.split(",").filter { it.isNotBlank() }
-                }
-            }
-        }
-    }
-
-    fun autoSave() {
+    fun triggerAutoSave() {
         autoSaveJob?.cancel()
         autoSaveJob = scope.launch {
             delay(1500)
@@ -133,8 +116,26 @@ fun AddEditNoteScreen(
         }
     }
 
+    LaunchedEffect(existingNoteId) {
+        if (existingNoteId != null) {
+            scope.launch {
+                val note = noteViewModel.getNoteById(existingNoteId)
+                if (note != null) {
+                    existingNote = note
+                    title = note.title
+                    content = note.content
+                    color = note.color
+                    isPinned = note.isPinned
+                    isTemplate = note.isTemplate
+                    selectedLabels = note.labels.split(",").filter { it.isNotBlank() }.toSet()
+                    imageUris = note.images.split(",").filter { it.isNotBlank() }
+                }
+            }
+        }
+    }
+
     LaunchedEffect(title, content, selectedLabels, imageUris) {
-        autoSave()
+        triggerAutoSave()
     }
 
     val backgroundColor = if (isDark) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surface
@@ -165,7 +166,7 @@ fun AddEditNoteScreen(
                 } else {
                     selectedLabels + label
                 }
-                autoSave()
+                triggerAutoSave()
             },
             onAddLabel = { labelName ->
                 noteViewModel.insertLabel(LabelEntity(name = labelName, color = 0))
@@ -191,7 +192,7 @@ fun AddEditNoteScreen(
                 actions = {
                     IconButton(onClick = {
                         isPinned = !isPinned
-                        autoSave()
+                        triggerAutoSave()
                     }) {
                         Icon(if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null, tint = iconColor)
                     }
@@ -206,7 +207,7 @@ fun AddEditNoteScreen(
                             text = { Text(if (isTemplate) "Hapus dari Template" else "Simpan sebagai Template") },
                             onClick = {
                                 isTemplate = !isTemplate
-                                autoSave()
+                                triggerAutoSave()
                                 showMoreMenu = false
                             },
                             leadingIcon = { Icon(Icons.Outlined.Description, null) }
@@ -289,7 +290,7 @@ fun AddEditNoteScreen(
                                     )
                                     .combinedClickable(onClick = {
                                         color = index
-                                        autoSave()
+                                        triggerAutoSave()
                                         showColorPicker = false
                                     })
                             )
@@ -308,7 +309,7 @@ fun AddEditNoteScreen(
                             AssistChip(
                                 onClick = {
                                     selectedLabels = selectedLabels - label
-                                    autoSave()
+                                    triggerAutoSave()
                                 },
                                 label = { Text(label, style = MaterialTheme.typography.bodySmall) },
                                 trailingIcon = {
@@ -361,7 +362,7 @@ fun AddEditNoteScreen(
                     IconButton(
                         onClick = {
                             imageUris = imageUris.filter { it != uri }
-                            autoSave()
+                            triggerAutoSave()
                         },
                         modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
                     ) {
