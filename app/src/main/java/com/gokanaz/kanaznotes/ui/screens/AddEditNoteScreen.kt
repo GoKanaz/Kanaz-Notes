@@ -33,11 +33,13 @@ import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.data.local.LabelEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.data.local.NoteEntity
+import com.gokanaz.kanaznotes.util.ImageHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.ImageBitmap
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -113,8 +115,11 @@ fun AddEditNoteScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            imageUris = imageUris + it.toString()
-            triggerAutoSave()
+            val savedPath = ImageHelper.saveImageToInternalStorage(context, it)
+            if (savedPath != null) {
+                imageUris = imageUris + savedPath
+                triggerAutoSave()
+            }
         }
     }
 
@@ -346,16 +351,15 @@ fun AddEditNoteScreen(
                 )
             }
 
-            items(imageUris) { uriString ->
+            items(imageUris) { imagePath ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                 ) {
-                    val bitmap = remember(uriString) {
+                    val bitmap = remember(imagePath) {
                         try {
-                            val inputStream = context.contentResolver.openInputStream(Uri.parse(uriString))
-                            BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
+                            BitmapFactory.decodeFile(imagePath)?.asImageBitmap()
                         } catch (e: Exception) {
                             null
                         }
@@ -386,7 +390,8 @@ fun AddEditNoteScreen(
                     
                     IconButton(
                         onClick = {
-                            imageUris = imageUris.filter { it != uriString }
+                            ImageHelper.deleteImage(imagePath)
+                            imageUris = imageUris.filter { it != imagePath }
                             triggerAutoSave()
                         },
                         modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
