@@ -12,5 +12,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Kanaz-Notes"
+
+rootProject.name = "KanazNotes"
 include(":app")

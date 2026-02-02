@@ -8,6 +8,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -66,6 +67,7 @@ fun HomeScreen(
     navController: NavHostController
 ) {
     val notes by noteViewModel.allNotes.collectAsState(initial = emptyList())
+    val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -73,7 +75,16 @@ fun HomeScreen(
     var selectedNotes by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var showColorPicker by remember { mutableStateOf(false) }
     var noteForColor by remember { mutableStateOf<NoteEntity?>(null) }
+    var selectedLabelFilter by remember { mutableStateOf<String?>(null) }
     val isDark = isSystemInDarkTheme()
+
+    val filteredNotes = if (selectedLabelFilter != null) {
+        notes.filter { note ->
+            note.labels.split(",").map { it.trim() }.contains(selectedLabelFilter)
+        }
+    } else {
+        notes
+    }
 
     if (showDeleteDialog && noteToDelete != null) {
         AlertDialog(
@@ -143,8 +154,11 @@ fun HomeScreen(
 
                 NavigationDrawerItem(
                     label = { Text("Catatan") },
-                    selected = true,
-                    onClick = { scope.launch { drawerState.close() } },
+                    selected = selectedLabelFilter == null,
+                    onClick = {
+                        selectedLabelFilter = null
+                        scope.launch { drawerState.close() }
+                    },
                     icon = { Icon(Icons.Outlined.Note, null) }
                 )
                 NavigationDrawerItem(
@@ -169,6 +183,28 @@ fun HomeScreen(
                     },
                     icon = { Icon(Icons.Outlined.Description, null) }
                 )
+                
+                if (allLabels.isNotEmpty()) {
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                    Text(
+                        "Label",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                    )
+                    allLabels.forEach { label ->
+                        NavigationDrawerItem(
+                            label = { Text(label.name) },
+                            selected = selectedLabelFilter == label.name,
+                            onClick = {
+                                selectedLabelFilter = if (selectedLabelFilter == label.name) null else label.name
+                                scope.launch { drawerState.close() }
+                            },
+                            icon = { Icon(Icons.Outlined.Label, null) }
+                        )
+                    }
+                }
+                
                 Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                 NavigationDrawerItem(
                     label = { Text("Pengaturan") },
@@ -226,13 +262,29 @@ fun HomeScreen(
                     )
                 } else {
                     TopAppBar(
-                        title = { Text("KanazNotes") },
+                        title = { 
+                            Column {
+                                Text("KanazNotes")
+                                if (selectedLabelFilter != null) {
+                                    Text(
+                                        "Label: $selectedLabelFilter",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        },
                         navigationIcon = {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                 Icon(Icons.Default.Menu, null)
                             }
                         },
                         actions = {
+                            if (selectedLabelFilter != null) {
+                                IconButton(onClick = { selectedLabelFilter = null }) {
+                                    Icon(Icons.Default.Close, "Hapus Filter")
+                                }
+                            }
                             IconButton(onClick = { navController.navigate("search") }) {
                                 Icon(Icons.Default.Search, null)
                             }
@@ -248,7 +300,7 @@ fun HomeScreen(
                 }
             }
         ) { padding ->
-            if (notes.isEmpty()) {
+            if (filteredNotes.isEmpty()) {
                 Column(
                     modifier = Modifier.fillMaxSize().padding(padding),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -262,23 +314,25 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "Belum ada catatan",
+                        if (selectedLabelFilter != null) "Tidak ada catatan dengan label ini" else "Belum ada catatan",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text(
-                        "Ketuk tombol + untuk menambahkan catatan baru",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (selectedLabelFilter == null) {
+                        Text(
+                            "Ketuk tombol + untuk menambahkan catatan baru",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding),
                     contentPadding = PaddingValues(8.dp)
                 ) {
-                    val pinnedNotes = notes.filter { it.isPinned }
-                    val unpinnedNotes = notes.filter { !it.isPinned }
+                    val pinnedNotes = filteredNotes.filter { it.isPinned }
+                    val unpinnedNotes = filteredNotes.filter { !it.isPinned }
 
                     if (pinnedNotes.isNotEmpty()) {
                         item {
@@ -368,6 +422,7 @@ fun NoteCard(
     val textColor = getTextColor(note.color, isDark)
     val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm")
     val formattedDate = dateFormat.format(Date(note.timestamp))
+    val labels = note.labels.split(",").filter { it.isNotBlank() }
 
     Card(
         modifier = Modifier
@@ -409,6 +464,20 @@ fun NoteCard(
                     }
                 }
             }
+            
+            if (labels.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    items(labels) { label ->
+                        AssistChip(
+                            onClick = {},
+                            label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                            modifier = Modifier.height(24.dp)
+                        )
+                    }
+                }
+            }
+            
             if (note.content.isNotBlank()) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
