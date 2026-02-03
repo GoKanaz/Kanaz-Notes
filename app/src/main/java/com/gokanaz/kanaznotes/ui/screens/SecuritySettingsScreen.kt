@@ -10,11 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 import com.tencent.mmkv.MMKV
 
@@ -45,8 +47,8 @@ fun SecuritySettingsScreen(
     if (showDisablePasswordDialog) {
         AlertDialog(
             onDismissRequest = { showDisablePasswordDialog = false },
-            title = { Text("Nonaktifkan PIN") },
-            text = { Text("Apakah Anda yakin ingin menonaktifkan perlindungan PIN?") },
+            title = { Text(stringResource(R.string.disable_pin)) },
+            text = { Text(stringResource(R.string.disable_pin_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     kv.encode("isPasswordEnabled", false)
@@ -54,12 +56,12 @@ fun SecuritySettingsScreen(
                     settingsViewModel.setScreenProtection(false)
                     showDisablePasswordDialog = false
                 }) {
-                    Text("Nonaktifkan")
+                    Text(stringResource(R.string.disable))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDisablePasswordDialog = false }) {
-                    Text("Batal")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -68,7 +70,7 @@ fun SecuritySettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Keamanan") },
+                title = { Text(stringResource(R.string.security)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, null)
@@ -91,9 +93,9 @@ fun SecuritySettingsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Kunci dengan PIN", style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.lock_with_pin), style = MaterialTheme.typography.titleMedium)
                             Text(
-                                if (isPasswordEnabled) "PIN telah diatur" else "Belum diatur",
+                                if (isPasswordEnabled) stringResource(R.string.pin_set) else stringResource(R.string.not_set),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -122,9 +124,9 @@ fun SecuritySettingsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Perlindungan Layar", style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.screen_protection), style = MaterialTheme.typography.titleMedium)
                             Text(
-                                "Cegah screenshot dan perekaman layar",
+                                stringResource(R.string.screen_protection_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -140,7 +142,7 @@ fun SecuritySettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                "Catatan: Perlindungan layar akan mencegah screenshot dan perekaman aplikasi",
+                stringResource(R.string.screen_protection_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)
@@ -161,7 +163,7 @@ fun PasswordSetupDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Atur PIN") },
+        title = { Text(stringResource(R.string.set_pin)) },
         text = {
             Column {
                 OutlinedTextField(
@@ -170,7 +172,7 @@ fun PasswordSetupDialog(
                         password = it
                         errorMessage = ""
                     },
-                    label = { Text("PIN (minimal 4 digit)") },
+                    label = { Text(stringResource(R.string.pin_min_4)) },
                     singleLine = true,
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -193,7 +195,7 @@ fun PasswordSetupDialog(
                         confirmPassword = it
                         errorMessage = ""
                     },
-                    label = { Text("Konfirmasi PIN") },
+                    label = { Text(stringResource(R.string.confirm_pin)) },
                     singleLine = true,
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -215,18 +217,18 @@ fun PasswordSetupDialog(
             TextButton(
                 onClick = {
                     when {
-                        password.length < 4 -> errorMessage = "PIN minimal 4 digit"
-                        password != confirmPassword -> errorMessage = "PIN tidak cocok"
+                        password.length < 4 -> errorMessage = stringResource(R.string.pin_min_error)
+                        password != confirmPassword -> errorMessage = stringResource(R.string.pin_mismatch)
                         else -> onConfirm(password)
                     }
                 }
             ) {
-                Text("Simpan")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Batal")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

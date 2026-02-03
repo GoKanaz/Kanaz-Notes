@@ -12,8 +12,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,7 +32,7 @@ fun StyleSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Gaya & Tema") },
+                title = { Text(stringResource(R.string.style_theme)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, null)
@@ -46,16 +48,24 @@ fun StyleSettingsScreen(
             item {
                 Card {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Mode Gelap", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.dark_mode), style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("system" to "Sistem", "on" to "Aktif", "off" to "Nonaktif").forEach { (value, label) ->
-                                FilterChip(
-                                    selected = darkMode == value,
-                                    onClick = { settingsViewModel.setDarkMode(value) },
-                                    label = { Text(label) }
-                                )
-                            }
+                            FilterChip(
+                                selected = darkMode == "system",
+                                onClick = { settingsViewModel.setDarkMode("system") },
+                                label = { Text(stringResource(R.string.system_default)) }
+                            )
+                            FilterChip(
+                                selected = darkMode == "on",
+                                onClick = { settingsViewModel.setDarkMode("on") },
+                                label = { Text(stringResource(R.string.on)) }
+                            )
+                            FilterChip(
+                                selected = darkMode == "off",
+                                onClick = { settingsViewModel.setDarkMode("off") },
+                                label = { Text(stringResource(R.string.off)) }
+                            )
                         }
                     }
                 }
@@ -70,8 +80,12 @@ fun StyleSettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Mode AMOLED", style = MaterialTheme.typography.titleMedium)
-                                Text("Layar hitam total di mode gelap", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.amoled_mode), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.amoled_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                             Switch(checked = isAmoledMode, onCheckedChange = { settingsViewModel.setAmoledMode(it) })
                         }
@@ -88,8 +102,12 @@ fun StyleSettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Warna Dinamis", style = MaterialTheme.typography.titleMedium)
-                                Text("Ikuti warna perangkat (Android 12+)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.dynamic_color), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.dynamic_color_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                             Switch(checked = isDynamicColor, onCheckedChange = { settingsViewModel.setDynamicColor(it) })
                         }
@@ -101,7 +119,7 @@ fun StyleSettingsScreen(
                 item {
                     Card {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Palet Warna", style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.color_palette), style = MaterialTheme.typography.titleMedium)
                             Spacer(modifier = Modifier.height(12.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 settingsViewModel.colorPalettes.forEachIndexed { index, palette ->
@@ -131,4 +149,3 @@ fun StyleSettingsScreen(
         }
     }
 }
-

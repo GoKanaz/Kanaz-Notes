@@ -8,9 +8,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,7 +33,7 @@ fun CloudSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Pengaturan Cloud") },
+                title = { Text(stringResource(R.string.cloud_settings)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, null)
@@ -47,24 +49,24 @@ fun CloudSettingsScreen(
             item {
                 Card {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Konfigurasi WebDAV", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.webdav_config), style = MaterialTheme.typography.titleMedium)
                         OutlinedTextField(
                             value = url,
                             onValueChange = { url = it; saved = false },
-                            label = { Text("URL WebDAV") },
-                            placeholder = { Text("https://example.com/webdav") },
+                            label = { Text(stringResource(R.string.webdav_url)) },
+                            placeholder = { Text(stringResource(R.string.webdav_url_hint)) },
                             modifier = Modifier.fillMaxWidth()
                         )
                         OutlinedTextField(
                             value = username,
                             onValueChange = { username = it; saved = false },
-                            label = { Text("Nama Pengguna") },
+                            label = { Text(stringResource(R.string.username)) },
                             modifier = Modifier.fillMaxWidth()
                         )
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it; saved = false },
-                            label = { Text("Kata Sandi") },
+                            label = { Text(stringResource(R.string.password)) },
                             visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -76,7 +78,7 @@ fun CloudSettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             enabled = url.isNotBlank() && username.isNotBlank()
                         ) {
-                            Text(if (saved) "Tersimpan" else "Simpan Konfigurasi")
+                            Text(if (saved) stringResource(R.string.saved) else stringResource(R.string.save_config))
                         }
                     }
                 }
@@ -91,8 +93,12 @@ fun CloudSettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Sinkronisasi Otomatis", style = MaterialTheme.typography.titleMedium)
-                                Text("Sinkronkan catatan secara berkala", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.auto_sync), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.auto_sync_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                             Switch(checked = isSyncEnabled, onCheckedChange = { settingsViewModel.setSyncEnabled(it) })
                         }
@@ -102,4 +108,3 @@ fun CloudSettingsScreen(
         }
     }
 }
-

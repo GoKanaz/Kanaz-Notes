@@ -9,8 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,7 +24,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Pengaturan") },
+                title = { Text(stringResource(R.string.settings)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Outlined.ArrowBack, null)
@@ -36,49 +38,49 @@ fun SettingsScreen(
             contentPadding = PaddingValues(16.dp)
         ) {
             item {
-                SectionTitle("Tampilan")
+                SectionTitle(stringResource(R.string.appearance))
             }
             item {
                 SettingsListItem(
                     icon = Icons.Outlined.Palette,
-                    title = "Gaya & Tema",
-                    subtitle = "Gelap, terang, dan warna",
+                    title = stringResource(R.string.style_theme),
+                    subtitle = stringResource(R.string.style_desc),
                     onClick = { navController.navigate("style_settings") }
                 )
             }
             item {
                 Spacer(modifier = Modifier.height(12.dp))
-                SectionTitle("Umum")
+                SectionTitle(stringResource(R.string.general))
             }
             item {
                 SettingsListItem(
                     icon = Icons.Outlined.Language,
-                    title = "Bahasa",
-                    subtitle = "Pengaturan bahasa aplikasi",
+                    title = stringResource(R.string.language),
+                    subtitle = stringResource(R.string.language_desc),
                     onClick = { navController.navigate("language_settings") }
                 )
             }
             item {
                 Spacer(modifier = Modifier.height(12.dp))
-                SectionTitle("Keamanan")
+                SectionTitle(stringResource(R.string.security))
             }
             item {
                 SettingsListItem(
                     icon = Icons.Outlined.Lock,
-                    title = "Keamanan",
-                    subtitle = "Kata sandi dan perlindungan",
+                    title = stringResource(R.string.security),
+                    subtitle = stringResource(R.string.security_desc),
                     onClick = { navController.navigate("security_settings") }
                 )
             }
             item {
                 Spacer(modifier = Modifier.height(12.dp))
-                SectionTitle("Sinkronisasi")
+                SectionTitle(stringResource(R.string.sync))
             }
             item {
                 SettingsListItem(
                     icon = Icons.Outlined.Cloud,
-                    title = "Pengaturan Cloud",
-                    subtitle = "WebDAV dan sinkronisasi",
+                    title = stringResource(R.string.cloud_settings),
+                    subtitle = stringResource(R.string.cloud_desc),
                     onClick = { navController.navigate("cloud_settings") }
                 )
             }

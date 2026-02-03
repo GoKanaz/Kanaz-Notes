@@ -10,10 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.gokanaz.kanaznotes.R
 import com.tencent.mmkv.MMKV
 
 @Composable
@@ -46,12 +48,12 @@ fun LockScreen(onUnlock: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
             
             Text(
-                text = "KanazNotes Terkunci",
+                text = stringResource(R.string.app_locked),
                 style = MaterialTheme.typography.headlineMedium
             )
             
             Text(
-                text = "Masukkan PIN untuk membuka",
+                text = stringResource(R.string.enter_pin_to_unlock),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -64,7 +66,7 @@ fun LockScreen(onUnlock: () -> Unit) {
                     password = it
                     errorMessage = ""
                 },
-                label = { Text("PIN") },
+                label = { Text(stringResource(R.string.pin)) },
                 singleLine = true,
                 visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -72,7 +74,7 @@ fun LockScreen(onUnlock: () -> Unit) {
                     IconButton(onClick = { showPassword = !showPassword }) {
                         Icon(
                             imageVector = if (showPassword) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
-                            contentDescription = if (showPassword) "Sembunyikan PIN" else "Tampilkan PIN"
+                            contentDescription = if (showPassword) stringResource(R.string.hide_pin) else stringResource(R.string.show_pin)
                         )
                     }
                 },
@@ -90,14 +92,14 @@ fun LockScreen(onUnlock: () -> Unit) {
                     if (password == savedPassword) {
                         onUnlock()
                     } else {
-                        errorMessage = "PIN salah, coba lagi"
+                        errorMessage = stringResource(R.string.wrong_pin)
                         password = ""
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = password.isNotEmpty()
             ) {
-                Text("Buka Kunci")
+                Text(stringResource(R.string.unlock))
             }
         }
     }
