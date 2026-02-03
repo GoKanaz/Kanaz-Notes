@@ -7,15 +7,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.MainActivity
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 import java.util.Locale
 
@@ -29,8 +30,8 @@ fun LanguageSettingsScreen(
     val language by settingsViewModel.language.collectAsState()
 
     val languages = listOf(
-        "en" to "English",
-        "id" to "Bahasa Indonesia"
+        "en" to stringResource(R.string.english),
+        "id" to stringResource(R.string.indonesian)
     )
     
     fun changeLanguageAndRestart(newLang: String) {
@@ -58,7 +59,7 @@ fun LanguageSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Bahasa") },
+                title = { Text(stringResource(R.string.language)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = null)
