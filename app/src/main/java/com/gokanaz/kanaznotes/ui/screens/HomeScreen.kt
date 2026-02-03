@@ -25,8 +25,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
@@ -95,17 +97,17 @@ fun HomeScreen(
     if (showDeleteDialog && noteToDelete != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Arsip Catatan") },
-            text = { Text("Catatan ini akan dipindahkan ke arsip. Anda dapat memulihkannya nanti.") },
+            title = { Text(stringResource(R.string.archive_note)) },
+            text = { Text(stringResource(R.string.archive_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     noteViewModel.archiveNote(noteToDelete!!)
                     showDeleteDialog = false
                     noteToDelete = null
-                }) { Text("Arsip") }
+                }) { Text(stringResource(R.string.archive)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Batal") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -113,7 +115,7 @@ fun HomeScreen(
     if (showColorPicker && noteForColor != null) {
         AlertDialog(
             onDismissRequest = { showColorPicker = false },
-            title = { Text("Pilih Warna") },
+            title = { Text(stringResource(R.string.choose_color_title)) },
             text = {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -140,7 +142,7 @@ fun HomeScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showColorPicker = false }) { Text("Tutup") }
+                TextButton(onClick = { showColorPicker = false }) { Text(stringResource(R.string.close)) }
             }
         )
     }
@@ -151,15 +153,15 @@ fun HomeScreen(
             ModalDrawerSheet {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    "KanazNotes",
+                    stringResource(R.string.app_name),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
                 )
-                Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 Spacer(modifier = Modifier.height(8.dp))
 
                 NavigationDrawerItem(
-                    label = { Text("Catatan") },
+                    label = { Text(stringResource(R.string.notes)) },
                     selected = selectedLabelFilter == null,
                     onClick = {
                         selectedLabelFilter = null
@@ -168,7 +170,7 @@ fun HomeScreen(
                     icon = { Icon(Icons.Outlined.Note, null) }
                 )
                 NavigationDrawerItem(
-                    label = { Text("Arsip") },
+                    label = { Text(stringResource(R.string.archive)) },
                     selected = false,
                     onClick = {
                         scope.launch {
@@ -179,7 +181,7 @@ fun HomeScreen(
                     icon = { Icon(Icons.Outlined.Archive, null) }
                 )
                 NavigationDrawerItem(
-                    label = { Text("Template") },
+                    label = { Text(stringResource(R.string.templates)) },
                     selected = false,
                     onClick = {
                         scope.launch {
@@ -191,9 +193,9 @@ fun HomeScreen(
                 )
                 
                 if (allLabels.isNotEmpty()) {
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                     Text(
-                        "Label",
+                        stringResource(R.string.label),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
@@ -211,9 +213,9 @@ fun HomeScreen(
                     }
                 }
                 
-                Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                 NavigationDrawerItem(
-                    label = { Text("Pengaturan") },
+                    label = { Text(stringResource(R.string.settings)) },
                     selected = false,
                     onClick = {
                         scope.launch {
@@ -230,7 +232,7 @@ fun HomeScreen(
             topBar = {
                 if (selectedNotes.isNotEmpty()) {
                     TopAppBar(
-                        title = { Text("${selectedNotes.size} dipilih") },
+                        title = { Text("${selectedNotes.size} ${stringResource(R.string.selected)}") },
                         navigationIcon = {
                             IconButton(onClick = { selectedNotes = emptySet() }) {
                                 Icon(Icons.Default.Close, null)
@@ -270,10 +272,10 @@ fun HomeScreen(
                     TopAppBar(
                         title = { 
                             Column {
-                                Text("KanazNotes")
+                                Text(stringResource(R.string.app_name))
                                 if (selectedLabelFilter != null) {
                                     Text(
-                                        "Label: $selectedLabelFilter",
+                                        "${stringResource(R.string.label)}: $selectedLabelFilter",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.primary
                                     )
@@ -288,7 +290,7 @@ fun HomeScreen(
                         actions = {
                             if (selectedLabelFilter != null) {
                                 IconButton(onClick = { selectedLabelFilter = null }) {
-                                    Icon(Icons.Default.Close, "Hapus Filter")
+                                    Icon(Icons.Default.Close, stringResource(R.string.remove_filter))
                                 }
                             }
                             IconButton(onClick = { navController.navigate("search") }) {
@@ -301,7 +303,7 @@ fun HomeScreen(
             floatingActionButton = {
                 if (selectedNotes.isEmpty()) {
                     FloatingActionButton(onClick = { navController.navigate("add_note") }) {
-                        Icon(Icons.Default.Add, "Tambah Catatan")
+                        Icon(Icons.Default.Add, stringResource(R.string.add_note))
                     }
                 }
             }
@@ -320,13 +322,13 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        if (selectedLabelFilter != null) "Tidak ada catatan dengan label ini" else "Belum ada catatan",
+                        if (selectedLabelFilter != null) stringResource(R.string.no_notes_with_label) else stringResource(R.string.no_notes),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (selectedLabelFilter == null) {
                         Text(
-                            "Ketuk tombol + untuk menambahkan catatan baru",
+                            stringResource(R.string.add_note_hint),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -343,7 +345,7 @@ fun HomeScreen(
                     if (pinnedNotes.isNotEmpty()) {
                         item {
                             Text(
-                                "Disematkan",
+                                stringResource(R.string.pinned),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -371,9 +373,9 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                         item {
-                            Divider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                             Text(
-                                "Semua",
+                                stringResource(R.string.all),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
