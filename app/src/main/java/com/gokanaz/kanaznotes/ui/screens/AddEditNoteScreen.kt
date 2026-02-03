@@ -28,8 +28,10 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.data.local.LabelEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.data.local.NoteEntity
@@ -38,8 +40,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import android.graphics.BitmapFactory
-import androidx.compose.ui.graphics.ImageBitmap
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -152,13 +152,13 @@ fun AddEditNoteScreen(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            title = { Text("Keluar?") },
-            text = { Text("Perubahan akan disimpan otomatis.") },
+            title = { Text(stringResource(R.string.exit_question)) },
+            text = { Text(stringResource(R.string.auto_save_message)) },
             confirmButton = {
-                TextButton(onClick = { navController.popBackStack() }) { Text("Keluar") }
+                TextButton(onClick = { navController.popBackStack() }) { Text(stringResource(R.string.exit)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDiscardDialog = false }) { Text("Batal") }
+                TextButton(onClick = { showDiscardDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -188,7 +188,7 @@ fun AddEditNoteScreen(
             TopAppBar(
                 title = {
                     if (isSaving) {
-                        Text("Menyimpan...", style = MaterialTheme.typography.bodySmall, color = iconColor.copy(alpha = 0.6f))
+                        Text(stringResource(R.string.saving), style = MaterialTheme.typography.bodySmall, color = iconColor.copy(alpha = 0.6f))
                     }
                 },
                 navigationIcon = {
@@ -211,7 +211,7 @@ fun AddEditNoteScreen(
                         onDismissRequest = { showMoreMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text(if (isTemplate) "Hapus dari Template" else "Simpan sebagai Template") },
+                            text = { Text(if (isTemplate) stringResource(R.string.remove_from_template) else stringResource(R.string.save_as_template)) },
                             onClick = {
                                 isTemplate = !isTemplate
                                 triggerAutoSave()
@@ -221,7 +221,7 @@ fun AddEditNoteScreen(
                         )
                         if (existingNote != null) {
                             DropdownMenuItem(
-                                text = { Text("Arsip") },
+                                text = { Text(stringResource(R.string.archive)) },
                                 onClick = {
                                     existingNote?.let { noteViewModel.archiveNote(it) }
                                     showMoreMenu = false
@@ -230,7 +230,7 @@ fun AddEditNoteScreen(
                                 leadingIcon = { Icon(Icons.Outlined.Archive, null) }
                             )
                             DropdownMenuItem(
-                                text = { Text("Hapus") },
+                                text = { Text(stringResource(R.string.delete)) },
                                 onClick = {
                                     existingNote?.let { noteViewModel.deleteNote(it) }
                                     showMoreMenu = false
@@ -260,13 +260,13 @@ fun AddEditNoteScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { imagePickerLauncher.launch("image/*") }) {
-                        Icon(Icons.Outlined.Image, "Tambah Gambar", tint = iconColor)
+                        Icon(Icons.Outlined.Image, stringResource(R.string.add_image), tint = iconColor)
                     }
                     IconButton(onClick = { showLabelDialog = true }) {
-                        Icon(Icons.Outlined.Label, "Tambah Label", tint = iconColor)
+                        Icon(Icons.Outlined.Label, stringResource(R.string.add_label), tint = iconColor)
                     }
                     IconButton(onClick = { showColorPicker = !showColorPicker }) {
-                        Icon(Icons.Outlined.Circle, "Pilih Warna", tint = iconColor)
+                        Icon(Icons.Outlined.Circle, stringResource(R.string.choose_color), tint = iconColor)
                     }
                     Spacer(modifier = Modifier.weight(1f))
                 }
@@ -340,7 +340,7 @@ fun AddEditNoteScreen(
                         Box {
                             if (title.isEmpty()) {
                                 Text(
-                                    "Judul",
+                                    stringResource(R.string.title_hint),
                                     style = MaterialTheme.typography.displaySmall,
                                     color = textColor.copy(alpha = 0.4f)
                                 )
@@ -384,7 +384,7 @@ fun AddEditNoteScreen(
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Outlined.BrokenImage, "Gambar tidak dapat dimuat")
+                            Icon(Icons.Outlined.BrokenImage, stringResource(R.string.image_not_loaded))
                         }
                     }
                     
@@ -419,7 +419,7 @@ fun AddEditNoteScreen(
                         Box {
                             if (content.isEmpty()) {
                                 Text(
-                                    "Tambah catatan...",
+                                    stringResource(R.string.content_hint),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = textColor.copy(alpha = 0.4f)
                                 )
@@ -445,14 +445,14 @@ fun LabelDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Kelola Label") },
+        title = { Text(stringResource(R.string.manage_labels)) },
         text = {
             Column {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         value = newLabelName,
                         onValueChange = { newLabelName = it },
-                        label = { Text("Label Baru") },
+                        label = { Text(stringResource(R.string.new_label)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true
                     )
@@ -464,7 +464,7 @@ fun LabelDialog(
                             }
                         }
                     ) {
-                        Icon(Icons.Default.Add, "Tambah")
+                        Icon(Icons.Default.Add, stringResource(R.string.add))
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -483,7 +483,7 @@ fun LabelDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Selesai") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
         }
     )
 }
