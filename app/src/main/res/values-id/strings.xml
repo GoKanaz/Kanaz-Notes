@@ -1,19 +1,135 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Kanaz Notes</string>
+    
+    <!-- General -->
     <string name="settings">Pengaturan</string>
     <string name="language">Bahasa</string>
-    <string name="language_settings">Pengaturan Bahasa</string>
+    <string name="english">English</string>
+    <string name="indonesian">Bahasa Indonesia</string>
+    <string name="search">Cari</string>
+    <string name="back">Kembali</string>
+    <string name="save">Simpan</string>
+    <string name="cancel">Batal</string>
+    <string name="close">Tutup</string>
+    <string name="delete">Hapus</string>
+    
+    <!-- Home Screen -->
+    <string name="no_notes">Belum ada catatan</string>
+    <string name="add_note_hint">Ketuk tombol + untuk menambahkan catatan baru</string>
+    <string name="add_note">Tambah Catatan</string>
+    <string name="notes">Catatan</string>
+    <string name="pinned">Disematkan</string>
+    <string name="all">Semua</string>
+    <string name="selected">dipilih</string>
+    <string name="no_notes_with_label">Tidak ada catatan dengan label ini</string>
+    <string name="label">Label</string>
+    <string name="remove_filter">Hapus Filter</string>
+    
+    <!-- Add/Edit Note -->
+    <string name="title_hint">Judul</string>
+    <string name="content_hint">Tambah catatan…</string>
+    <string name="saving">Menyimpan…</string>
+    <string name="exit_question">Keluar?</string>
+    <string name="auto_save_message">Perubahan akan disimpan otomatis.</string>
+    <string name="exit">Keluar</string>
+    <string name="save_as_template">Simpan sebagai Template</string>
+    <string name="remove_from_template">Hapus dari Template</string>
+    <string name="archive">Arsip</string>
+    <string name="add_image">Tambah Gambar</string>
+    <string name="add_label">Tambah Label</string>
+    <string name="choose_color">Pilih Warna</string>
+    <string name="manage_labels">Kelola Label</string>
+    <string name="new_label">Label Baru</string>
+    <string name="add">Tambah</string>
+    <string name="done">Selesai</string>
+    <string name="image_not_loaded">Gambar tidak dapat dimuat</string>
+    
+    <!-- Dialogs -->
+    <string name="archive_note">Arsip Catatan</string>
+    <string name="archive_message">Catatan ini akan dipindahkan ke arsip. Anda dapat memulihkannya nanti.</string>
+    <string name="choose_color_title">Pilih Warna</string>
+    <string name="use_template">Gunakan Template</string>
+    <string name="use_template_message">Buat catatan baru dari template ini?</string>
+    <string name="use">Gunakan</string>
+    <string name="restore_note">Pulihkan Catatan</string>
+    <string name="restore_message">Catatan ini akan dipulihkan ke daftar utama.</string>
+    <string name="restore">Pulihkan</string>
+    <string name="delete_forever">Hapus Selamanya</string>
+    <string name="delete_forever_message">Catatan ini akan dihapus secara permanen dan tidak dapat dipulihkan.</string>
+    
+    <!-- Settings -->
+    <string name="appearance">Tampilan</string>
+    <string name="general">Umum</string>
+    <string name="security">Keamanan</string>
+    <string name="sync">Sinkronisasi</string>
     <string name="style_theme">Gaya &amp; Tema</string>
     <string name="style_desc">Gelap, terang, dan warna</string>
     <string name="language_desc">Pengaturan bahasa aplikasi</string>
-    <string name="security">Keamanan</string>
     <string name="security_desc">Kata sandi dan perlindungan</string>
     <string name="cloud_settings">Pengaturan Cloud</string>
     <string name="cloud_desc">WebDAV dan sinkronisasi</string>
-    <string name="english">English</string>
-    <string name="indonesian">Bahasa Indonesia</string>
-    <string name="appearance">Tampilan</string>
-    <string name="general">Umum</string>
-    <string name="sync">Sinkronisasi</string>
+    
+    <!-- Style Settings -->
+    <string name="dark_mode">Mode Gelap</string>
+    <string name="system_default">Sistem</string>
+    <string name="on">Aktif</string>
+    <string name="off">Nonaktif</string>
+    <string name="amoled_mode">Mode AMOLED</string>
+    <string name="amoled_desc">Layar hitam total di mode gelap</string>
+    <string name="dynamic_color">Warna Dinamis</string>
+    <string name="dynamic_color_desc">Ikuti warna perangkat (Android 12+)</string>
+    <string name="color_palette">Palet Warna</string>
+    
+    <!-- Security Settings -->
+    <string name="lock_with_pin">Kunci dengan PIN</string>
+    <string name="pin_set">PIN telah diatur</string>
+    <string name="not_set">Belum diatur</string>
+    <string name="screen_protection">Perlindungan Layar</string>
+    <string name="screen_protection_desc">Cegah screenshot dan perekaman layar</string>
+    <string name="screen_protection_note">Catatan: Perlindungan layar akan mencegah screenshot dan perekaman aplikasi</string>
+    <string name="set_pin">Atur PIN</string>
+    <string name="pin_min_4">PIN (minimal 4 digit)</string>
+    <string name="confirm_pin">Konfirmasi PIN</string>
+    <string name="pin_min_error">PIN minimal 4 digit</string>
+    <string name="pin_mismatch">PIN tidak cocok</string>
+    <string name="disable_pin">Nonaktifkan PIN</string>
+    <string name="disable_pin_message">Apakah Anda yakin ingin menonaktifkan perlindungan PIN?</string>
+    <string name="disable">Nonaktifkan</string>
+    
+    <!-- Lock Screen -->
+    <string name="app_locked">KanazNotes Terkunci</string>
+    <string name="enter_pin_to_unlock">Masukkan PIN untuk membuka</string>
+    <string name="pin">PIN</string>
+    <string name="show_pin">Tampilkan PIN</string>
+    <string name="hide_pin">Sembunyikan PIN</string>
+    <string name="unlock">Buka Kunci</string>
+    <string name="wrong_pin">PIN salah, coba lagi</string>
+    
+    <!-- Cloud Settings -->
+    <string name="webdav_config">Konfigurasi WebDAV</string>
+    <string name="webdav_url">URL WebDAV</string>
+    <string name="webdav_url_hint">https://example.com/webdav</string>
+    <string name="username">Nama Pengguna</string>
+    <string name="password">Kata Sandi</string>
+    <string name="save_config">Simpan Konfigurasi</string>
+    <string name="saved">Tersimpan</string>
+    <string name="auto_sync">Sinkronisasi Otomatis</string>
+    <string name="auto_sync_desc">Sinkronkan catatan secara berkala</string>
+    
+    <!-- Templates -->
+    <string name="templates">Template</string>
+    <string name="no_templates">Belum ada template</string>
+    <string name="templates_appear_here">Template akan muncul di sini</string>
+    <string name="no_title">(Tanpa Judul)</string>
+    
+    <!-- Archive -->
+    <string name="archived_notes">Arsip</string>
+    <string name="archive_empty">Arsip kosong</string>
+    <string name="archived_notes_appear_here">Catatan yang diarsip akan muncul di sini</string>
+    
+    <!-- Search -->
+    <string name="search_notes">Cari catatan…</string>
+    <string name="tap_to_search">Ketuk untuk mencari catatan Anda</string>
+    <string name="no_results">Tidak ditemukan hasil untuk \"%1$s\"</string>
 </resources>

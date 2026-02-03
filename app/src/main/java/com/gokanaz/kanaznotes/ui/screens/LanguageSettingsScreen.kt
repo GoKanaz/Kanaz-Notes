@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.gokanaz.kanaznotes.R
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.MainActivity
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
