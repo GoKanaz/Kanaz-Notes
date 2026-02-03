@@ -10,8 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
-import com.gokanaz.kanaznotes.R
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.ui.viewmodel.SettingsViewModel
 

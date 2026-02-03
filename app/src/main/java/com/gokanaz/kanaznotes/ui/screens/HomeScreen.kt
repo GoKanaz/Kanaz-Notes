@@ -26,8 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
-import com.gokanaz.kanaznotes.R
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
@@ -104,7 +102,7 @@ fun HomeScreen(
                     noteViewModel.archiveNote(noteToDelete!!)
                     showDeleteDialog = false
                     noteToDelete = null
-                }) { Text(stringResource(R.string.archive)) }
+                }) { Text("Arsip") }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) { Text("Batal") }
@@ -161,7 +159,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.notes)) },
+                    label = { Text("Catatan") },
                     selected = selectedLabelFilter == null,
                     onClick = {
                         selectedLabelFilter = null
@@ -170,7 +168,7 @@ fun HomeScreen(
                     icon = { Icon(Icons.Outlined.Note, null) }
                 )
                 NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.archive)) },
+                    label = { Text("Arsip") },
                     selected = false,
                     onClick = {
                         scope.launch {
@@ -181,7 +179,7 @@ fun HomeScreen(
                     icon = { Icon(Icons.Outlined.Archive, null) }
                 )
                 NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.templates)) },
+                    label = { Text("Template") },
                     selected = false,
                     onClick = {
                         scope.launch {
@@ -215,7 +213,7 @@ fun HomeScreen(
                 
                 Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                 NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.settings)) },
+                    label = { Text("Pengaturan") },
                     selected = false,
                     onClick = {
                         scope.launch {
@@ -322,13 +320,13 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        if (selectedLabelFilter != null) stringResource(R.string.no_notes_with_label) else stringResource(R.string.no_notes),
+                        if (selectedLabelFilter != null) "Tidak ada catatan dengan label ini" else "Belum ada catatan",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (selectedLabelFilter == null) {
                         Text(
-                            stringResource(R.string.add_note_hint) + untuk menambahkan catatan baru",
+                            "Ketuk tombol + untuk menambahkan catatan baru",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

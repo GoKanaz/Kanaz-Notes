@@ -29,8 +29,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
-import com.gokanaz.kanaznotes.R
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.data.local.LabelEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
@@ -154,8 +152,8 @@ fun AddEditNoteScreen(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            title = { Text(stringResource(R.string.exit_question)) },
-            text = { Text(stringResource(R.string.auto_save_message)) },
+            title = { Text("Keluar?") },
+            text = { Text("Perubahan akan disimpan otomatis.") },
             confirmButton = {
                 TextButton(onClick = { navController.popBackStack() }) { Text("Keluar") }
             },
@@ -190,7 +188,7 @@ fun AddEditNoteScreen(
             TopAppBar(
                 title = {
                     if (isSaving) {
-                        Text(stringResource(R.string.saving), style = MaterialTheme.typography.bodySmall, color = iconColor.copy(alpha = 0.6f))
+                        Text("Menyimpan...", style = MaterialTheme.typography.bodySmall, color = iconColor.copy(alpha = 0.6f))
                     }
                 },
                 navigationIcon = {
@@ -342,7 +340,7 @@ fun AddEditNoteScreen(
                         Box {
                             if (title.isEmpty()) {
                                 Text(
-                                    stringResource(R.string.title_hint),
+                                    "Judul",
                                     style = MaterialTheme.typography.displaySmall,
                                     color = textColor.copy(alpha = 0.4f)
                                 )
