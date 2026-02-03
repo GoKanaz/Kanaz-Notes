@@ -160,6 +160,9 @@ fun PasswordSetupDialog(
     var confirmPassword by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    
+    val pinMinError = stringResource(R.string.pin_min_error)
+    val pinMismatch = stringResource(R.string.pin_mismatch)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -217,8 +220,8 @@ fun PasswordSetupDialog(
             TextButton(
                 onClick = {
                     when {
-                        password.length < 4 -> errorMessage = stringResource(R.string.pin_min_error)
-                        password != confirmPassword -> errorMessage = stringResource(R.string.pin_mismatch)
+                        password.length < 4 -> errorMessage = pinMinError
+                        password != confirmPassword -> errorMessage = pinMismatch
                         else -> onConfirm(password)
                     }
                 }

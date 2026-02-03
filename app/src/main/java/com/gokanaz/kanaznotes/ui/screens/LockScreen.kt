@@ -26,6 +26,8 @@ fun LockScreen(onUnlock: () -> Unit) {
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    
+    val wrongPinMessage = stringResource(R.string.wrong_pin)
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -92,7 +94,7 @@ fun LockScreen(onUnlock: () -> Unit) {
                     if (password == savedPassword) {
                         onUnlock()
                     } else {
-                        errorMessage = stringResource(R.string.wrong_pin)
+                        errorMessage = wrongPinMessage
                         password = ""
                     }
                 },
