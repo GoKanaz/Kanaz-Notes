@@ -13,8 +13,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import java.text.SimpleDateFormat
@@ -34,8 +36,8 @@ fun TemplateScreen(
     if (showUseTemplateDialog && selectedTemplate != null) {
         AlertDialog(
             onDismissRequest = { showUseTemplateDialog = false },
-            title = { Text("Gunakan Template") },
-            text = { Text("Buat catatan baru dari template ini?") },
+            title = { Text(stringResource(R.string.use_template)) },
+            text = { Text(stringResource(R.string.use_template_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     val newNote = selectedTemplate!!.copy(
@@ -48,12 +50,12 @@ fun TemplateScreen(
                     selectedTemplate = null
                     navController.popBackStack()
                 }) {
-                    Text("Gunakan")
+                    Text(stringResource(R.string.use))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showUseTemplateDialog = false }) {
-                    Text("Batal")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -62,7 +64,7 @@ fun TemplateScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Template") },
+                title = { Text(stringResource(R.string.templates)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, null)
@@ -85,12 +87,12 @@ fun TemplateScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "Belum ada template",
+                    stringResource(R.string.no_templates),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    "Template akan muncul di sini",
+                    stringResource(R.string.templates_appear_here),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -130,7 +132,7 @@ fun TemplateScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    template.title.ifBlank { "(Tanpa Judul)" },
+                                    template.title.ifBlank { stringResource(R.string.no_title) },
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.weight(1f),
                                     color = textColor

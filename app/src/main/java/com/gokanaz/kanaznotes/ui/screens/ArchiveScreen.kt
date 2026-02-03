@@ -11,8 +11,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import java.text.SimpleDateFormat
@@ -34,17 +36,17 @@ fun ArchiveScreen(
     if (showRestoreDialog && noteToRestore != null) {
         AlertDialog(
             onDismissRequest = { showRestoreDialog = false },
-            title = { Text("Pulihkan Catatan") },
-            text = { Text("Catatan ini akan dipulihkan ke daftar utama.") },
+            title = { Text(stringResource(R.string.restore_note)) },
+            text = { Text(stringResource(R.string.restore_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     noteViewModel.unarchiveNote(noteToRestore!!)
                     showRestoreDialog = false
                     noteToRestore = null
-                }) { Text("Pulihkan") }
+                }) { Text(stringResource(R.string.restore)) }
             },
             dismissButton = {
-                TextButton(onClick = { showRestoreDialog = false }) { Text("Batal") }
+                TextButton(onClick = { showRestoreDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -52,17 +54,17 @@ fun ArchiveScreen(
     if (showDeleteDialog && noteToDelete != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Hapus Selamanya") },
-            text = { Text("Catatan ini akan dihapus secara permanen dan tidak dapat dipulihkan.") },
+            title = { Text(stringResource(R.string.delete_forever)) },
+            text = { Text(stringResource(R.string.delete_forever_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     noteViewModel.deleteNote(noteToDelete!!)
                     showDeleteDialog = false
                     noteToDelete = null
-                }) { Text("Hapus", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Batal") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -70,7 +72,7 @@ fun ArchiveScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Arsip") },
+                title = { Text(stringResource(R.string.archived_notes)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, null)
@@ -87,8 +89,8 @@ fun ArchiveScreen(
             ) {
                 Icon(Icons.Outlined.Archive, null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Arsip kosong", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Catatan yang diarsip akan muncul di sini", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.archive_empty), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.archived_notes_appear_here), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(
@@ -114,7 +116,7 @@ fun ArchiveScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    note.title.ifBlank { "(Tanpa Judul)" }, 
+                                    note.title.ifBlank { stringResource(R.string.no_title) }, 
                                     style = MaterialTheme.typography.titleMedium, 
                                     modifier = Modifier.weight(1f),
                                     color = textColor

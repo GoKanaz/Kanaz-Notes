@@ -10,8 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -37,7 +39,7 @@ fun SearchScreen(
         onSearch = {},
         active = active,
         onActiveChange = { active = it },
-        placeholder = { Text("Cari catatan...") },
+        placeholder = { Text(stringResource(R.string.search_notes)) },
         leadingIcon = {
             if (active) {
                 IconButton(onClick = {
@@ -65,7 +67,7 @@ fun SearchScreen(
             ) {
                 Icon(Icons.Default.Search, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Ketuk untuk mencari catatan Anda", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.tap_to_search), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (filtered.isEmpty()) {
             Column(
@@ -75,7 +77,7 @@ fun SearchScreen(
             ) {
                 Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Tidak ditemukan hasil untuk \"$query\"", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.no_results, query), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(contentPadding = PaddingValues(8.dp)) {
@@ -111,4 +113,3 @@ fun SearchScreen(
         }
     }
 }
-
