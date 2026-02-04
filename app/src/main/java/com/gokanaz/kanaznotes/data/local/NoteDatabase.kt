@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [NoteEntity::class, FolderEntity::class, LabelEntity::class], version = 3, exportSchema = false)
+@Database(entities = [NoteEntity::class, LabelEntity::class], version = 2, exportSchema = false)
 abstract class NoteDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
 
@@ -15,11 +15,9 @@ abstract class NoteDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: NoteDatabase? = null
 
-        private val MIGRATION_2_3 = object : Migration(2, 3) {
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE notes_table ADD COLUMN labels TEXT NOT NULL DEFAULT ''")
-                database.execSQL("ALTER TABLE notes_table ADD COLUMN images TEXT NOT NULL DEFAULT ''")
-                database.execSQL("CREATE TABLE IF NOT EXISTS labels_table (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT NOT NULL, color INTEGER NOT NULL)")
+                database.execSQL("ALTER TABLE notes_table ADD COLUMN isTrashed INTEGER NOT NULL DEFAULT 0")
             }
         }
 
@@ -30,9 +28,9 @@ abstract class NoteDatabase : RoomDatabase() {
                     NoteDatabase::class.java,
                     "note_database"
                 )
-                .addMigrations(MIGRATION_2_3)
-                .fallbackToDestructiveMigration()
-                .build()
+                    .addMigrations(MIGRATION_1_2)
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

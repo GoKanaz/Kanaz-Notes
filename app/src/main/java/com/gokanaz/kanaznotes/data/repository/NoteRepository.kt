@@ -7,47 +7,29 @@ import kotlinx.coroutines.flow.Flow
 
 class NoteRepository(private val noteDao: NoteDao) {
 
-    suspend fun insertNote(note: NoteEntity) {
-        noteDao.insertNote(note)
-    }
+    fun getAllNotes(): Flow<List<NoteEntity>> = noteDao.getAllNotes()
 
-    suspend fun updateNote(note: NoteEntity) {
-        noteDao.updateNote(note)
-    }
+    fun getTemplates(): Flow<List<NoteEntity>> = noteDao.getTemplates()
 
-    suspend fun deleteNote(note: NoteEntity) {
-        noteDao.deleteNote(note)
-    }
+    fun getArchivedNotes(): Flow<List<NoteEntity>> = noteDao.getArchivedNotes()
 
-    fun getAllNotes(): Flow<List<NoteEntity>> {
-        return noteDao.getAllNotes()
-    }
+    fun getTrashedNotes(): Flow<List<NoteEntity>> = noteDao.getTrashedNotes()
 
-    fun getTemplates(): Flow<List<NoteEntity>> {
-        return noteDao.getTemplates()
-    }
+    suspend fun getNoteById(id: Int): NoteEntity? = noteDao.getNoteById(id)
 
-    fun getArchivedNotes(): Flow<List<NoteEntity>> {
-        return noteDao.getArchivedNotes()
-    }
+    fun getNotesByLabel(label: String): Flow<List<NoteEntity>> = noteDao.getNotesByLabel(label)
 
-    suspend fun getNoteById(id: Int): NoteEntity? {
-        return noteDao.getNoteById(id)
-    }
+    suspend fun insertNote(note: NoteEntity) = noteDao.insertNote(note)
 
-    fun getNotesByLabel(label: String): Flow<List<NoteEntity>> {
-        return noteDao.getNotesByLabel(label)
-    }
+    suspend fun updateNote(note: NoteEntity) = noteDao.updateNote(note)
 
-    suspend fun insertLabel(label: LabelEntity) {
-        noteDao.insertLabel(label)
-    }
+    suspend fun deleteNote(note: NoteEntity) = noteDao.deleteNote(note)
 
-    suspend fun deleteLabel(label: LabelEntity) {
-        noteDao.deleteLabel(label)
-    }
+    fun getAllLabels(): Flow<List<LabelEntity>> = noteDao.getAllLabels()
 
-    fun getAllLabels(): Flow<List<LabelEntity>> {
-        return noteDao.getAllLabels()
-    }
+    suspend fun insertLabel(label: LabelEntity) = noteDao.insertLabel(label)
+
+    suspend fun updateLabel(label: LabelEntity) = noteDao.updateLabel(label)
+
+    suspend fun deleteLabel(label: LabelEntity) = noteDao.deleteLabel(label)
 }

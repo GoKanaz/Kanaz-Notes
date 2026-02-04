@@ -15,6 +15,7 @@ data class NoteEntity(
     val isPinned: Boolean = false,
     val isDeleted: Boolean = false,
     val isTemplate: Boolean = false,
+    val isTrashed: Boolean = false,
     val labels: String = "",
     val images: String = ""
 )

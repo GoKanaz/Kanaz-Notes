@@ -2,7 +2,6 @@
 <resources>
     <string name="app_name">Kanaz Notes</string>
     
-    <!-- General -->
     <string name="settings">Settings</string>
     <string name="language">Language</string>
     <string name="english">English</string>
@@ -14,7 +13,6 @@
     <string name="close">Close</string>
     <string name="delete">Delete</string>
     
-    <!-- Home Screen -->
     <string name="no_notes">No notes yet</string>
     <string name="add_note_hint">Tap + button to add a new note</string>
     <string name="add_note">Add Note</string>
@@ -25,8 +23,9 @@
     <string name="no_notes_with_label">No notes with this label</string>
     <string name="label">Label</string>
     <string name="remove_filter">Remove Filter</string>
+    <string name="trash">Trash</string>
+    <string name="labels">Labels</string>
     
-    <!-- Add/Edit Note -->
     <string name="title_hint">Title</string>
     <string name="content_hint">Add note…</string>
     <string name="saving">Saving…</string>
@@ -45,7 +44,6 @@
     <string name="done">Done</string>
     <string name="image_not_loaded">Image cannot be loaded</string>
     
-    <!-- Dialogs -->
     <string name="archive_note">Archive Note</string>
     <string name="archive_message">This note will be moved to archive. You can restore it later.</string>
     <string name="choose_color_title">Choose Color</string>
@@ -57,8 +55,9 @@
     <string name="restore">Restore</string>
     <string name="delete_forever">Delete Forever</string>
     <string name="delete_forever_message">This note will be permanently deleted and cannot be recovered.</string>
+    <string name="move_to_trash">Move to Trash</string>
+    <string name="move_to_trash_message">This note will be moved to trash.</string>
     
-    <!-- Settings -->
     <string name="appearance">Appearance</string>
     <string name="general">General</string>
     <string name="security">Security</string>
@@ -70,7 +69,6 @@
     <string name="cloud_settings">Cloud Settings</string>
     <string name="cloud_desc">WebDAV and sync</string>
     
-    <!-- Style Settings -->
     <string name="dark_mode">Dark Mode</string>
     <string name="system_default">System</string>
     <string name="on">On</string>
@@ -81,7 +79,6 @@
     <string name="dynamic_color_desc">Follow device colors (Android 12+)</string>
     <string name="color_palette">Color Palette</string>
     
-    <!-- Security Settings -->
     <string name="lock_with_pin">Lock with PIN</string>
     <string name="pin_set">PIN is set</string>
     <string name="not_set">Not set</string>
@@ -97,7 +94,6 @@
     <string name="disable_pin_message">Are you sure you want to disable PIN protection?</string>
     <string name="disable">Disable</string>
     
-    <!-- Lock Screen -->
     <string name="app_locked">KanazNotes Locked</string>
     <string name="enter_pin_to_unlock">Enter PIN to unlock</string>
     <string name="pin">PIN</string>
@@ -106,7 +102,6 @@
     <string name="unlock">Unlock</string>
     <string name="wrong_pin">Wrong PIN, try again</string>
     
-    <!-- Cloud Settings -->
     <string name="webdav_config">WebDAV Configuration</string>
     <string name="webdav_url">WebDAV URL</string>
     <string name="webdav_url_hint">https://example.com/webdav</string>
@@ -117,18 +112,30 @@
     <string name="auto_sync">Auto Sync</string>
     <string name="auto_sync_desc">Sync notes periodically</string>
     
-    <!-- Templates -->
     <string name="templates">Templates</string>
     <string name="no_templates">No templates yet</string>
     <string name="templates_appear_here">Templates will appear here</string>
     <string name="no_title">(No Title)</string>
     
-    <!-- Archive -->
     <string name="archived_notes">Archive</string>
     <string name="archive_empty">Archive is empty</string>
     <string name="archived_notes_appear_here">Archived notes will appear here</string>
     
-    <!-- Search -->
+    <string name="trash_notes">Trash</string>
+    <string name="trash_empty">Trash is empty</string>
+    <string name="trash_notes_appear_here">Deleted notes will appear here</string>
+    <string name="empty_trash">Empty Trash</string>
+    <string name="empty_trash_message">All notes in trash will be permanently deleted. Continue?</string>
+    <string name="empty_trash_confirm">Empty</string>
+    
+    <string name="manage_all_labels">Manage Labels</string>
+    <string name="no_labels">No labels yet</string>
+    <string name="labels_appear_here">Labels will appear here</string>
+    <string name="edit_label">Edit Label</string>
+    <string name="delete_label">Delete Label</string>
+    <string name="delete_label_message">This label will be deleted. Notes with this label will not be deleted.</string>
+    <string name="label_name">Label Name</string>
+    
     <string name="search_notes">Search notes…</string>
     <string name="tap_to_search">Tap to search your notes</string>
     <string name="no_results">No results for \"%1$s\"</string>

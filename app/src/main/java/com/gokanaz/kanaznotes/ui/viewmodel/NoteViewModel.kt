@@ -13,6 +13,7 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     val allNotes: Flow<List<NoteEntity>> = repository.getAllNotes()
     val templates: Flow<List<NoteEntity>> = repository.getTemplates()
     val archivedNotes: Flow<List<NoteEntity>> = repository.getArchivedNotes()
+    val trashedNotes: Flow<List<NoteEntity>> = repository.getTrashedNotes()
     val allLabels: Flow<List<LabelEntity>> = repository.getAllLabels()
 
     fun insertNote(note: NoteEntity) {
@@ -45,6 +46,18 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         }
     }
 
+    fun moveToTrash(note: NoteEntity) {
+        viewModelScope.launch {
+            repository.updateNote(note.copy(isTrashed = true, isDeleted = false))
+        }
+    }
+
+    fun restoreFromTrash(note: NoteEntity) {
+        viewModelScope.launch {
+            repository.updateNote(note.copy(isTrashed = false))
+        }
+    }
+
     fun togglePin(note: NoteEntity) {
         viewModelScope.launch {
             repository.updateNote(note.copy(isPinned = !note.isPinned))
@@ -62,6 +75,12 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     fun insertLabel(label: LabelEntity) {
         viewModelScope.launch {
             repository.insertLabel(label)
+        }
+    }
+
+    fun updateLabel(label: LabelEntity) {
+        viewModelScope.launch {
+            repository.updateLabel(label)
         }
     }
 
