@@ -30,7 +30,7 @@ abstract class NoteDatabase : RoomDatabase() {
         private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
-                    CREATE TABLE IF NOT EXISTS labels (
+                    CREATE TABLE IF NOT EXISTS labels_table (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                         name TEXT NOT NULL,
                         color INTEGER NOT NULL

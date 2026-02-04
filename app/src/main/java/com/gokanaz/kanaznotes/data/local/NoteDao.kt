@@ -32,7 +32,7 @@ interface NoteDao {
     @Delete
     suspend fun deleteNote(note: NoteEntity)
 
-    @Query("SELECT * FROM labels ORDER BY name ASC")
+    @Query("SELECT * FROM labels_table ORDER BY name ASC")
     fun getAllLabels(): Flow<List<LabelEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
