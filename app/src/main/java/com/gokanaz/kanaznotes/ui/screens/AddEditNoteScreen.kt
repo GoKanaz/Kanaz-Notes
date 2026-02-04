@@ -70,11 +70,9 @@ fun AddEditNoteScreen(
 
     val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
 
-    fun triggerAutoSave() {
-        autoSaveJob?.cancel()
-        autoSaveJob = scope.launch {
-            delay(1500)
-            if (title.isNotBlank() || content.isNotBlank()) {
+    fun saveNote() {
+        scope.launch {
+            if (title.isNotBlank() || content.isNotBlank() || imageUris.isNotEmpty()) {
                 isSaving = true
                 val note = if (existingNote != null) {
                     existingNote!!.copy(
@@ -99,15 +97,25 @@ fun AddEditNoteScreen(
                         timestamp = System.currentTimeMillis()
                     )
                 }
+                
                 if (existingNote != null) {
                     noteViewModel.updateNote(note)
                 } else {
                     noteViewModel.insertNote(note)
-                    existingNote = note
+                    existingNote = note.copy(id = note.id)
                 }
+                
                 delay(500)
                 isSaving = false
             }
+        }
+    }
+
+    fun triggerAutoSave() {
+        autoSaveJob?.cancel()
+        autoSaveJob = scope.launch {
+            delay(1500)
+            saveNote()
         }
     }
 
@@ -118,7 +126,7 @@ fun AddEditNoteScreen(
             val savedPath = ImageHelper.saveImageToInternalStorage(context, it)
             if (savedPath != null) {
                 imageUris = imageUris + savedPath
-                triggerAutoSave()
+                saveNote()
             }
         }
     }
@@ -141,7 +149,7 @@ fun AddEditNoteScreen(
         }
     }
 
-    LaunchedEffect(title, content, selectedLabels, imageUris) {
+    LaunchedEffect(title, content, selectedLabels) {
         triggerAutoSave()
     }
 
@@ -232,7 +240,7 @@ fun AddEditNoteScreen(
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.delete)) },
                                 onClick = {
-                                    existingNote?.let { noteViewModel.deleteNote(it) }
+                                    existingNote?.let { noteViewModel.moveToTrash(it) }
                                     showMoreMenu = false
                                     navController.popBackStack()
                                 },
@@ -392,7 +400,7 @@ fun AddEditNoteScreen(
                         onClick = {
                             ImageHelper.deleteImage(imagePath)
                             imageUris = imageUris.filter { it != imagePath }
-                            triggerAutoSave()
+                            saveNote()
                         },
                         modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
                     ) {
