@@ -139,8 +139,7 @@
     <string name="search_notes">Search notes…</string>
     <string name="tap_to_search">Tap to search your notes</string>
     <string name="no_results">No results for \"%1$s\"</string>
-</resources>
-
+    
     <string name="share">Share</string>
     <string name="add_images">Add Images</string>
     <string name="add_labels">Add Labels</string>
@@ -151,3 +150,4 @@
     <string name="play_audio">Play Audio</string>
     <string name="delete_audio">Delete Audio</string>
     <string name="share_note">Share Note</string>
+</resources>
