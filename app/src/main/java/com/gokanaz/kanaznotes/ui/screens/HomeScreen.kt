@@ -97,14 +97,14 @@ fun HomeScreen(
     if (showDeleteDialog && noteToDelete != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.archive_note)) },
-            text = { Text(stringResource(R.string.archive_message)) },
+            title = { Text(stringResource(R.string.move_to_trash)) },
+            text = { Text(stringResource(R.string.move_to_trash_message)) },
             confirmButton = {
                 TextButton(onClick = {
-                    noteViewModel.archiveNote(noteToDelete!!)
+                    noteViewModel.moveToTrash(noteToDelete!!)
                     showDeleteDialog = false
                     noteToDelete = null
-                }) { Text(stringResource(R.string.archive)) }
+                }) { Text(stringResource(R.string.delete)) }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
@@ -181,6 +181,17 @@ fun HomeScreen(
                     icon = { Icon(Icons.Outlined.Archive, null) }
                 )
                 NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.trash)) },
+                    selected = false,
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate("trash")
+                        }
+                    },
+                    icon = { Icon(Icons.Outlined.Delete, null) }
+                )
+                NavigationDrawerItem(
                     label = { Text(stringResource(R.string.templates)) },
                     selected = false,
                     onClick = {
@@ -192,10 +203,24 @@ fun HomeScreen(
                     icon = { Icon(Icons.Outlined.Description, null) }
                 )
                 
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.manage_all_labels)) },
+                    selected = false,
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate("labels_management")
+                        }
+                    },
+                    icon = { Icon(Icons.Outlined.Label, null) }
+                )
+                
                 if (allLabels.isNotEmpty()) {
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                     Text(
-                        stringResource(R.string.label),
+                        stringResource(R.string.labels),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
@@ -261,7 +286,7 @@ fun HomeScreen(
                                 Icon(Icons.Outlined.Archive, null)
                             }
                             IconButton(onClick = {
-                                notes.filter { it.id in selectedNotes }.forEach { noteViewModel.deleteNote(it) }
+                                notes.filter { it.id in selectedNotes }.forEach { noteViewModel.moveToTrash(it) }
                                 selectedNotes = emptySet()
                             }) {
                                 Icon(Icons.Outlined.Delete, null)
