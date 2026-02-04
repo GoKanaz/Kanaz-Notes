@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -84,6 +87,7 @@ fun HomeScreen(
     var showColorPicker by remember { mutableStateOf(false) }
     var noteForColor by remember { mutableStateOf<NoteEntity?>(null) }
     var selectedLabelFilter by remember { mutableStateOf<String?>(null) }
+    var isGridLayout by remember { mutableStateOf(false) }
     val isDark = isSystemInDarkTheme()
 
     val filteredNotes = if (selectedLabelFilter != null) {
@@ -321,6 +325,12 @@ fun HomeScreen(
                             IconButton(onClick = { navController.navigate("search") }) {
                                 Icon(Icons.Default.Search, null)
                             }
+                            IconButton(onClick = { isGridLayout = !isGridLayout }) {
+                                Icon(
+                                    if (isGridLayout) Icons.Default.ViewAgenda else Icons.Default.GridView,
+                                    contentDescription = if (isGridLayout) "List View" else "Grid View"
+                                )
+                            }
                         }
                     )
                 }
@@ -360,23 +370,125 @@ fun HomeScreen(
                     }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(8.dp)
-                ) {
-                    val pinnedNotes = filteredNotes.filter { it.isPinned }
-                    val unpinnedNotes = filteredNotes.filter { !it.isPinned }
+                val pinnedNotes = filteredNotes.filter { it.isPinned }
+                val unpinnedNotes = filteredNotes.filter { !it.isPinned }
 
-                    if (pinnedNotes.isNotEmpty()) {
-                        item {
-                            Text(
-                                stringResource(R.string.pinned),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                if (isGridLayout) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        contentPadding = PaddingValues(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (pinnedNotes.isNotEmpty()) {
+                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
+                                Text(
+                                    stringResource(R.string.pinned),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                            items(pinnedNotes, key = { it.id }) { note ->
+                                NoteCard(
+                                    note = note,
+                                    isSelected = note.id in selectedNotes,
+                                    isDark = isDark,
+                                    onLongClick = { selectedNotes = selectedNotes + note.id },
+                                    onClick = {
+                                        if (selectedNotes.isNotEmpty()) {
+                                            selectedNotes = if (note.id in selectedNotes) selectedNotes - note.id else selectedNotes + note.id
+                                        } else {
+                                            navController.navigate("edit_note/${note.id}")
+                                        }
+                                    },
+                                    onArchive = {
+                                        noteToDelete = note
+                                        showDeleteDialog = true
+                                    },
+                                    onPin = { noteViewModel.togglePin(note) }
+                                )
+                            }
+                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
+                                Column {
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                                    Text(
+                                        stringResource(R.string.all),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                        items(unpinnedNotes, key = { it.id }) { note ->
+                            NoteCard(
+                                note = note,
+                                isSelected = note.id in selectedNotes,
+                                isDark = isDark,
+                                onLongClick = { selectedNotes = selectedNotes + note.id },
+                                onClick = {
+                                    if (selectedNotes.isNotEmpty()) {
+                                        selectedNotes = if (note.id in selectedNotes) selectedNotes - note.id else selectedNotes + note.id
+                                    } else {
+                                        navController.navigate("edit_note/${note.id}")
+                                    }
+                                },
+                                onArchive = {
+                                    noteToDelete = note
+                                    showDeleteDialog = true
+                                },
+                                onPin = { noteViewModel.togglePin(note) }
                             )
                         }
-                        items(pinnedNotes, key = { it.id }) { note ->
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        contentPadding = PaddingValues(8.dp)
+                    ) {
+                        if (pinnedNotes.isNotEmpty()) {
+                            item {
+                                Text(
+                                    stringResource(R.string.pinned),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                            items(pinnedNotes, key = { it.id }) { note ->
+                                NoteCard(
+                                    note = note,
+                                    isSelected = note.id in selectedNotes,
+                                    isDark = isDark,
+                                    onLongClick = { selectedNotes = selectedNotes + note.id },
+                                    onClick = {
+                                        if (selectedNotes.isNotEmpty()) {
+                                            selectedNotes = if (note.id in selectedNotes) selectedNotes - note.id else selectedNotes + note.id
+                                        } else {
+                                            navController.navigate("edit_note/${note.id}")
+                                        }
+                                    },
+                                    onArchive = {
+                                        noteToDelete = note
+                                        showDeleteDialog = true
+                                    },
+                                    onPin = { noteViewModel.togglePin(note) }
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                            item {
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                                Text(
+                                    stringResource(R.string.all),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                        items(unpinnedNotes, key = { it.id }) { note ->
                             NoteCard(
                                 note = note,
                                 isSelected = note.id in selectedNotes,
@@ -397,36 +509,6 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                         }
-                        item {
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                            Text(
-                                stringResource(R.string.all),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                    items(unpinnedNotes, key = { it.id }) { note ->
-                        NoteCard(
-                            note = note,
-                            isSelected = note.id in selectedNotes,
-                            isDark = isDark,
-                            onLongClick = { selectedNotes = selectedNotes + note.id },
-                            onClick = {
-                                if (selectedNotes.isNotEmpty()) {
-                                    selectedNotes = if (note.id in selectedNotes) selectedNotes - note.id else selectedNotes + note.id
-                                } else {
-                                    navController.navigate("edit_note/${note.id}")
-                                }
-                            },
-                            onArchive = {
-                                noteToDelete = note
-                                showDeleteDialog = true
-                            },
-                            onPin = { noteViewModel.togglePin(note) }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }

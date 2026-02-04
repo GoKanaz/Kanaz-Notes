@@ -182,7 +182,7 @@ fun AddEditNoteScreen(
             val savedPath = ImageHelper.saveImageToInternalStorage(context, it)
             if (savedPath != null) {
                 imageUris = imageUris + savedPath
-                saveNote()
+                triggerAutoSave()
             }
         }
     }
@@ -378,7 +378,6 @@ fun AddEditNoteScreen(
                             },
                             leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, null) }
                         )
-                        HorizontalDivider()
                         DropdownMenuItem(
                             text = { Text(if (isTemplate) stringResource(R.string.remove_from_template) else stringResource(R.string.save_as_template)) },
                             onClick = {
