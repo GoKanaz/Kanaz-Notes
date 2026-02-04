@@ -133,3 +133,14 @@
     <string name="tap_to_search">Ketuk untuk mencari catatan Anda</string>
     <string name="no_results">Tidak ditemukan hasil untuk \"%1$s\"</string>
 </resources>
+
+    <string name="share">Bagikan</string>
+    <string name="add_images">Tambah Gambar</string>
+    <string name="add_labels">Tambah Label</string>
+    <string name="record_audio">Rekam Audio</string>
+    <string name="save_as_pdf">Simpan sebagai PDF</string>
+    <string name="recording">Merekam…</string>
+    <string name="stop_recording">Berhenti Merekam</string>
+    <string name="play_audio">Putar Audio</string>
+    <string name="delete_audio">Hapus Audio</string>
+    <string name="share_note">Bagikan Catatan</string>

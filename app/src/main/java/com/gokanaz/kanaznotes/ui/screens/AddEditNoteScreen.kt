@@ -1,5 +1,8 @@
 package com.gokanaz.kanaznotes.ui.screens
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,16 +33,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.data.local.LabelEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 import com.gokanaz.kanaznotes.util.ImageHelper
+import com.gokanaz.kanaznotes.util.AudioHelper
+import com.gokanaz.kanaznotes.util.PdfHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import android.graphics.BitmapFactory
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -59,6 +67,7 @@ fun AddEditNoteScreen(
     var isTemplate by remember { mutableStateOf(false) }
     var selectedLabels by remember { mutableStateOf<Set<String>>(emptySet()) }
     var imageUris by remember { mutableStateOf<List<String>>(emptyList()) }
+    var audioFiles by remember { mutableStateOf<List<String>>(emptyList()) }
     
     var showColorPicker by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
@@ -67,12 +76,27 @@ fun AddEditNoteScreen(
     var existingNote by remember { mutableStateOf<NoteEntity?>(null) }
     var autoSaveJob by remember { mutableStateOf<Job?>(null) }
     var isSaving by remember { mutableStateOf(false) }
+    var isRecording by remember { mutableStateOf(false) }
+    var currentRecordingPath by remember { mutableStateOf<String?>(null) }
+    var playingAudioIndex by remember { mutableStateOf<Int?>(null) }
 
     val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val path = AudioHelper.startRecording(context)
+            if (path != null) {
+                currentRecordingPath = path
+                isRecording = true
+            }
+        }
+    }
+
     fun saveNote() {
         scope.launch {
-            if (title.isNotBlank() || content.isNotBlank() || imageUris.isNotEmpty()) {
+            if (title.isNotBlank() || content.isNotBlank() || imageUris.isNotEmpty() || audioFiles.isNotEmpty()) {
                 isSaving = true
                 val note = if (existingNote != null) {
                     existingNote!!.copy(
@@ -83,6 +107,7 @@ fun AddEditNoteScreen(
                         isTemplate = isTemplate,
                         labels = selectedLabels.joinToString(","),
                         images = imageUris.joinToString(","),
+                        audioFiles = audioFiles.joinToString(","),
                         timestamp = System.currentTimeMillis()
                     )
                 } else {
@@ -94,6 +119,7 @@ fun AddEditNoteScreen(
                         isTemplate = isTemplate,
                         labels = selectedLabels.joinToString(","),
                         images = imageUris.joinToString(","),
+                        audioFiles = audioFiles.joinToString(","),
                         timestamp = System.currentTimeMillis()
                     )
                 }
@@ -116,6 +142,36 @@ fun AddEditNoteScreen(
         autoSaveJob = scope.launch {
             delay(1500)
             saveNote()
+        }
+    }
+
+    fun shareNote() {
+        val shareText = buildString {
+            if (title.isNotBlank()) {
+                append("$title\n\n")
+            }
+            append(content)
+        }
+        
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            type = "text/plain"
+        }
+        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_note)))
+    }
+
+    fun saveToPdf() {
+        scope.launch {
+            val pdfFile = PdfHelper.createPdfFromNote(context, title, content, System.currentTimeMillis())
+            if (pdfFile != null) {
+                val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", pdfFile)
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "application/pdf")
+                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
+                context.startActivity(intent)
+            }
         }
     }
 
@@ -144,6 +200,7 @@ fun AddEditNoteScreen(
                     isTemplate = note.isTemplate
                     selectedLabels = note.labels.split(",").filter { it.isNotBlank() }.toSet()
                     imageUris = note.images.split(",").filter { it.isNotBlank() }
+                    audioFiles = note.audioFiles.split(",").filter { it.isNotBlank() }
                 }
             }
         }
@@ -151,6 +208,15 @@ fun AddEditNoteScreen(
 
     LaunchedEffect(title, content, selectedLabels) {
         triggerAutoSave()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            AudioHelper.stopAudio()
+            if (isRecording) {
+                AudioHelper.stopRecording()
+            }
+        }
     }
 
     val backgroundColor = getCardColor(color, isDark)
@@ -190,6 +256,41 @@ fun AddEditNoteScreen(
         )
     }
 
+    if (showColorPicker) {
+        AlertDialog(
+            onDismissRequest = { showColorPicker = false },
+            title = { Text(stringResource(R.string.choose_color_title)) },
+            text = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    noteColors.forEachIndexed { index, c ->
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(c, shape = CircleShape)
+                                .border(
+                                    width = if (color == index) 2.5.dp else 1.dp,
+                                    color = if (color == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                    shape = CircleShape
+                                )
+                                .combinedClickable(onClick = {
+                                    color = index
+                                    triggerAutoSave()
+                                    showColorPicker = false
+                                })
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showColorPicker = false }) { Text(stringResource(R.string.close)) }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
@@ -197,6 +298,8 @@ fun AddEditNoteScreen(
                 title = {
                     if (isSaving) {
                         Text(stringResource(R.string.saving), style = MaterialTheme.typography.bodySmall, color = iconColor.copy(alpha = 0.6f))
+                    } else if (isRecording) {
+                        Text(stringResource(R.string.recording), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                     }
                 },
                 navigationIcon = {
@@ -205,11 +308,17 @@ fun AddEditNoteScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { shareNote() }) {
+                        Icon(Icons.Outlined.Share, stringResource(R.string.share), tint = iconColor)
+                    }
                     IconButton(onClick = {
                         isPinned = !isPinned
                         triggerAutoSave()
                     }) {
                         Icon(if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null, tint = iconColor)
+                    }
+                    IconButton(onClick = { showColorPicker = true }) {
+                        Icon(Icons.Outlined.Circle, stringResource(R.string.choose_color), tint = iconColor)
                     }
                     IconButton(onClick = { showMoreMenu = true }) {
                         Icon(Icons.Default.MoreVert, null, tint = iconColor)
@@ -218,6 +327,58 @@ fun AddEditNoteScreen(
                         expanded = showMoreMenu,
                         onDismissRequest = { showMoreMenu = false }
                     ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.add_images)) },
+                            onClick = {
+                                imagePickerLauncher.launch("image/*")
+                                showMoreMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Outlined.Image, null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.add_labels)) },
+                            onClick = {
+                                showLabelDialog = true
+                                showMoreMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Outlined.Label, null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(if (isRecording) stringResource(R.string.stop_recording) else stringResource(R.string.record_audio)) },
+                            onClick = {
+                                if (isRecording) {
+                                    AudioHelper.stopRecording()
+                                    currentRecordingPath?.let {
+                                        audioFiles = audioFiles + it
+                                        saveNote()
+                                    }
+                                    isRecording = false
+                                    currentRecordingPath = null
+                                } else {
+                                    val permission = Manifest.permission.RECORD_AUDIO
+                                    if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+                                        val path = AudioHelper.startRecording(context)
+                                        if (path != null) {
+                                            currentRecordingPath = path
+                                            isRecording = true
+                                        }
+                                    } else {
+                                        permissionLauncher.launch(permission)
+                                    }
+                                }
+                                showMoreMenu = false
+                            },
+                            leadingIcon = { Icon(if (isRecording) Icons.Filled.Stop else Icons.Outlined.Mic, null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.save_as_pdf)) },
+                            onClick = {
+                                saveToPdf()
+                                showMoreMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, null) }
+                        )
+                        HorizontalDivider()
                         DropdownMenuItem(
                             text = { Text(if (isTemplate) stringResource(R.string.remove_from_template) else stringResource(R.string.save_as_template)) },
                             onClick = {
@@ -257,28 +418,6 @@ fun AddEditNoteScreen(
                     actionIconContentColor = iconColor
                 )
             )
-        },
-        bottomBar = {
-            Surface(
-                color = backgroundColor,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { imagePickerLauncher.launch("image/*") }) {
-                        Icon(Icons.Outlined.Image, stringResource(R.string.add_image), tint = iconColor)
-                    }
-                    IconButton(onClick = { showLabelDialog = true }) {
-                        Icon(Icons.Outlined.Label, stringResource(R.string.add_label), tint = iconColor)
-                    }
-                    IconButton(onClick = { showColorPicker = !showColorPicker }) {
-                        Icon(Icons.Outlined.Circle, stringResource(R.string.choose_color), tint = iconColor)
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
         }
     ) { padding ->
         LazyColumn(
@@ -287,33 +426,6 @@ fun AddEditNoteScreen(
                 .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {
-            if (showColorPicker) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        noteColors.forEachIndexed { index, c ->
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .background(c, shape = CircleShape)
-                                    .border(
-                                        width = if (color == index) 2.5.dp else 1.dp,
-                                        color = if (color == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                        shape = CircleShape
-                                    )
-                                    .combinedClickable(onClick = {
-                                        color = index
-                                        triggerAutoSave()
-                                        showColorPicker = false
-                                    })
-                            )
-                        }
-                    }
-                }
-            }
-
             if (selectedLabels.isNotEmpty()) {
                 item {
                     Row(
@@ -412,6 +524,50 @@ fun AddEditNoteScreen(
                                 .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                                 .padding(4.dp)
                         )
+                    }
+                }
+            }
+
+            items(audioFiles.size) { index ->
+                val audioPath = audioFiles[index]
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.AudioFile, null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Audio ${index + 1}", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        Row {
+                            IconButton(onClick = {
+                                if (playingAudioIndex == index && AudioHelper.isPlaying()) {
+                                    AudioHelper.stopAudio()
+                                    playingAudioIndex = null
+                                } else {
+                                    AudioHelper.playAudio(audioPath) {
+                                        playingAudioIndex = null
+                                    }
+                                    playingAudioIndex = index
+                                }
+                            }) {
+                                Icon(
+                                    if (playingAudioIndex == index && AudioHelper.isPlaying()) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+                                    stringResource(R.string.play_audio)
+                                )
+                            }
+                            IconButton(onClick = {
+                                AudioHelper.deleteAudio(audioPath)
+                                audioFiles = audioFiles.filter { it != audioPath }
+                                saveNote()
+                            }) {
+                                Icon(Icons.Outlined.Delete, stringResource(R.string.delete_audio))
+                            }
+                        }
                     }
                 }
             }

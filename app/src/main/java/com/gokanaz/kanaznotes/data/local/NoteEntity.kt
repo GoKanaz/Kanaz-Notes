@@ -17,5 +17,6 @@ data class NoteEntity(
     val isTemplate: Boolean = false,
     val isTrashed: Boolean = false,
     val labels: String = "",
-    val images: String = ""
+    val images: String = "",
+    val audioFiles: String = ""
 )
