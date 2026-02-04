@@ -18,7 +18,7 @@ fun LabelsManagementScreen(
     noteViewModel: NoteViewModel,
     navController: NavController
 ) {
-    val labels by noteViewModel.allLabels.collectAsState()
+    val labels by noteViewModel.allLabels.collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {

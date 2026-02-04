@@ -18,7 +18,7 @@ fun TrashScreen(
     noteViewModel: NoteViewModel,
     navController: NavController
 ) {
-    val trashedNotes by noteViewModel.trashedNotes.collectAsState()
+    val trashedNotes by noteViewModel.trashedNotes.collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {
