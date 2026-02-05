@@ -489,7 +489,7 @@ fun AddEditNoteScreen(
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
                                 .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.FitWidth
+                            contentScale = ContentScale.Fit
                         )
                     }
                 }
