@@ -182,7 +182,6 @@ fun AddEditNoteScreen(
             val savedPath = ImageHelper.saveImageToInternalStorage(context, it)
             if (savedPath != null) {
                 imageUris = imageUris + savedPath
-                triggerAutoSave()
             }
         }
     }
@@ -208,6 +207,12 @@ fun AddEditNoteScreen(
 
     LaunchedEffect(title, content, selectedLabels) {
         triggerAutoSave()
+    }
+
+    LaunchedEffect(imageUris, audioFiles) {
+        if (imageUris.isNotEmpty() || audioFiles.isNotEmpty()) {
+            saveNote()
+        }
     }
 
     DisposableEffect(Unit) {
@@ -350,7 +355,6 @@ fun AddEditNoteScreen(
                                     AudioHelper.stopRecording()
                                     currentRecordingPath?.let {
                                         audioFiles = audioFiles + it
-                                        saveNote()
                                     }
                                     isRecording = false
                                     currentRecordingPath = null
@@ -511,7 +515,6 @@ fun AddEditNoteScreen(
                         onClick = {
                             ImageHelper.deleteImage(imagePath)
                             imageUris = imageUris.filter { it != imagePath }
-                            saveNote()
                         },
                         modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
                     ) {
@@ -562,7 +565,6 @@ fun AddEditNoteScreen(
                             IconButton(onClick = {
                                 AudioHelper.deleteAudio(audioPath)
                                 audioFiles = audioFiles.filter { it != audioPath }
-                                saveNote()
                             }) {
                                 Icon(Icons.Outlined.Delete, stringResource(R.string.delete_audio))
                             }
