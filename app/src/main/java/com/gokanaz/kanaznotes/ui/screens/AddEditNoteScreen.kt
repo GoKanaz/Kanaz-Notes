@@ -15,9 +15,11 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -68,6 +70,7 @@ fun AddEditNoteScreen(
     var selectedLabels by remember { mutableStateOf<Set<String>>(emptySet()) }
     var imageUris by remember { mutableStateOf<List<String>>(emptyList()) }
     var audioFiles by remember { mutableStateOf<List<String>>(emptyList()) }
+    var isPreviewMode by remember { mutableStateOf(false) }
     
     var showColorPicker by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
@@ -329,6 +332,13 @@ fun AddEditNoteScreen(
                     IconButton(onClick = { showColorPicker = true }) {
                         Icon(Icons.Outlined.Circle, stringResource(R.string.choose_color), tint = iconColor)
                     }
+                    IconButton(onClick = { isPreviewMode = !isPreviewMode }) {
+                        Icon(
+                            if (isPreviewMode) Icons.Default.Edit else Icons.Default.Visibility,
+                            if (isPreviewMode) "Edit" else "Preview",
+                            tint = iconColor
+                        )
+                    }
                     IconButton(onClick = { showMoreMenu = true }) {
                         Icon(Icons.Default.MoreVert, null, tint = iconColor)
                     }
@@ -431,62 +441,38 @@ fun AddEditNoteScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-        ) {
-            if (selectedLabels.isNotEmpty()) {
-                item {
+        if (isPreviewMode) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                if (title.isNotBlank()) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.displaySmall,
+                        color = textColor
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                
+                if (selectedLabels.isNotEmpty()) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         selectedLabels.forEach { label ->
                             AssistChip(
-                                onClick = {
-                                    selectedLabels = selectedLabels - label
-                                },
-                                label = { Text(label, style = MaterialTheme.typography.bodySmall) },
-                                trailingIcon = {
-                                    Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
-                                }
+                                onClick = {},
+                                label = { Text(label, style = MaterialTheme.typography.bodySmall) }
                             )
                         }
                     }
                 }
-            }
-
-            item {
-                BasicTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                    textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    singleLine = true,
-                    decorationBox = { innerTextField ->
-                        Box {
-                            if (title.isEmpty()) {
-                                Text(
-                                    stringResource(R.string.title_hint),
-                                    style = MaterialTheme.typography.displaySmall,
-                                    color = textColor.copy(alpha = 0.4f)
-                                )
-                            }
-                            innerTextField()
-                        }
-                    }
-                )
-            }
-
-            items(imageUris) { imagePath ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
+                
+                imageUris.forEach { imagePath ->
                     val bitmap = remember(imagePath) {
                         try {
                             BitmapFactory.decodeFile(imagePath)?.asImageBitmap()
@@ -501,113 +487,200 @@ fun AddEditNoteScreen(
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 300.dp)
+                                .padding(vertical = 8.dp)
                                 .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Outlined.BrokenImage, stringResource(R.string.image_not_loaded))
-                        }
-                    }
-                    
-                    IconButton(
-                        onClick = {
-                            ImageHelper.deleteImage(imagePath)
-                            imageUris = imageUris.filter { it != imagePath }
-                            scope.launch {
-                                delay(100)
-                                saveNote()
-                            }
-                        },
-                        modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            null,
-                            tint = Color.White,
-                            modifier = Modifier
-                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                .padding(4.dp)
+                            contentScale = ContentScale.FitWidth
                         )
                     }
                 }
+                
+                if (content.isNotBlank()) {
+                    Text(
+                        text = content,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = textColor
+                    )
+                }
             }
-
-            items(audioFiles.size) { index ->
-                val audioPath = audioFiles[index]
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.AudioFile, null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Audio ${index + 1}", style = MaterialTheme.typography.bodyMedium)
-                        }
-                        Row {
-                            IconButton(onClick = {
-                                if (playingAudioIndex == index && AudioHelper.isPlaying()) {
-                                    AudioHelper.stopAudio()
-                                    playingAudioIndex = null
-                                } else {
-                                    AudioHelper.playAudio(audioPath) {
-                                        playingAudioIndex = null
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp)
+            ) {
+                if (selectedLabels.isNotEmpty()) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            selectedLabels.forEach { label ->
+                                AssistChip(
+                                    onClick = {
+                                        selectedLabels = selectedLabels - label
+                                    },
+                                    label = { Text(label, style = MaterialTheme.typography.bodySmall) },
+                                    trailingIcon = {
+                                        Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
                                     }
-                                    playingAudioIndex = index
-                                }
-                            }) {
-                                Icon(
-                                    if (playingAudioIndex == index && AudioHelper.isPlaying()) Icons.Filled.Stop else Icons.Filled.PlayArrow,
-                                    stringResource(R.string.play_audio)
                                 )
                             }
-                            IconButton(onClick = {
-                                AudioHelper.deleteAudio(audioPath)
-                                audioFiles = audioFiles.filter { it != audioPath }
+                        }
+                    }
+                }
+
+                item {
+                    BasicTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        singleLine = true,
+                        decorationBox = { innerTextField ->
+                            Box {
+                                if (title.isEmpty()) {
+                                    Text(
+                                        stringResource(R.string.title_hint),
+                                        style = MaterialTheme.typography.displaySmall,
+                                        color = textColor.copy(alpha = 0.4f)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
+                    )
+                }
+
+                items(imageUris) { imagePath ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        val bitmap = remember(imagePath) {
+                            try {
+                                BitmapFactory.decodeFile(imagePath)?.asImageBitmap()
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        
+                        if (bitmap != null) {
+                            Image(
+                                bitmap = bitmap,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 300.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Outlined.BrokenImage, stringResource(R.string.image_not_loaded))
+                            }
+                        }
+                        
+                        IconButton(
+                            onClick = {
+                                ImageHelper.deleteImage(imagePath)
+                                imageUris = imageUris.filter { it != imagePath }
                                 scope.launch {
                                     delay(100)
                                     saveNote()
                                 }
-                            }) {
-                                Icon(Icons.Outlined.Delete, stringResource(R.string.delete_audio))
+                            },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                null,
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                    .padding(4.dp)
+                            )
+                        }
+                    }
+                }
+
+                items(audioFiles.size) { index ->
+                    val audioPath = audioFiles[index]
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Outlined.AudioFile, null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Audio ${index + 1}", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Row {
+                                IconButton(onClick = {
+                                    if (playingAudioIndex == index && AudioHelper.isPlaying()) {
+                                        AudioHelper.stopAudio()
+                                        playingAudioIndex = null
+                                    } else {
+                                        AudioHelper.playAudio(audioPath) {
+                                            playingAudioIndex = null
+                                        }
+                                        playingAudioIndex = index
+                                    }
+                                }) {
+                                    Icon(
+                                        if (playingAudioIndex == index && AudioHelper.isPlaying()) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+                                        stringResource(R.string.play_audio)
+                                    )
+                                }
+                                IconButton(onClick = {
+                                    AudioHelper.deleteAudio(audioPath)
+                                    audioFiles = audioFiles.filter { it != audioPath }
+                                    scope.launch {
+                                        delay(100)
+                                        saveNote()
+                                    }
+                                }) {
+                                    Icon(Icons.Outlined.Delete, stringResource(R.string.delete_audio))
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            item {
-                BasicTextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    decorationBox = { innerTextField ->
-                        Box {
-                            if (content.isEmpty()) {
-                                Text(
-                                    stringResource(R.string.content_hint),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = textColor.copy(alpha = 0.4f)
-                                )
+                item {
+                    BasicTextField(
+                        value = content,
+                        onValueChange = { content = it },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        decorationBox = { innerTextField ->
+                            Box {
+                                if (content.isEmpty()) {
+                                    Text(
+                                        stringResource(R.string.content_hint),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = textColor.copy(alpha = 0.4f)
+                                    )
+                                }
+                                innerTextField()
                             }
-                            innerTextField()
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
