@@ -88,7 +88,6 @@ fun HomeScreen(
     var noteForColor by remember { mutableStateOf<NoteEntity?>(null) }
     var selectedLabelFilter by remember { mutableStateOf<String?>(null) }
     var isGridLayout by remember { mutableStateOf(false) }
-    var showNoteTypeDialog by remember { mutableStateOf(false) }
     val isDark = isSystemInDarkTheme()
 
     val filteredNotes = if (selectedLabelFilter != null) {
@@ -97,43 +96,6 @@ fun HomeScreen(
         }
     } else {
         notes
-    }
-
-    if (showNoteTypeDialog) {
-        AlertDialog(
-            onDismissRequest = { showNoteTypeDialog = false },
-            title = { Text("Create New Note") },
-            text = {
-                Column {
-                    TextButton(
-                        onClick = {
-                            showNoteTypeDialog = false
-                            navController.navigate("add_note")
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Outlined.Note, null, modifier = Modifier.padding(end = 8.dp))
-                        Text("Regular Note")
-                    }
-                    TextButton(
-                        onClick = {
-                            showNoteTypeDialog = false
-                            navController.navigate("add_markdown_note")
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Outlined.Code, null, modifier = Modifier.padding(end = 8.dp))
-                        Text("Markdown Note")
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showNoteTypeDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 
     if (showDeleteDialog && noteToDelete != null) {
@@ -375,7 +337,7 @@ fun HomeScreen(
             },
             floatingActionButton = {
                 if (selectedNotes.isEmpty()) {
-                    FloatingActionButton(onClick = { showNoteTypeDialog = true }) {
+                    FloatingActionButton(onClick = { navController.navigate("add_note") }) {
                         Icon(Icons.Default.Add, stringResource(R.string.add_note))
                     }
                 }

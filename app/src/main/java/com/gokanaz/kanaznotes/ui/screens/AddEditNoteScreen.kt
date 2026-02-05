@@ -11,12 +11,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -31,12 +29,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -54,13 +49,6 @@ import kotlinx.coroutines.Job
 import android.graphics.BitmapFactory
 import java.io.File
 
-data class MarkdownAction(
-    val icon: ImageVector,
-    val label: String,
-    val prefix: String,
-    val suffix: String = ""
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddEditNoteScreen(
@@ -73,7 +61,7 @@ fun AddEditNoteScreen(
     val context = LocalContext.current
 
     var title by remember { mutableStateOf("") }
-    var contentTextField by remember { mutableStateOf(TextFieldValue("")) }
+    var content by remember { mutableStateOf("") }
     var color by remember { mutableStateOf(0) }
     var isPinned by remember { mutableStateOf(false) }
     var isTemplate by remember { mutableStateOf(false) }
@@ -91,6 +79,7 @@ fun AddEditNoteScreen(
     var isRecording by remember { mutableStateOf(false) }
     var currentRecordingPath by remember { mutableStateOf<String?>(null) }
     var playingAudioIndex by remember { mutableStateOf<Int?>(null) }
+    var isInitialLoad by remember { mutableStateOf(true) }
 
     val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
 
@@ -108,7 +97,6 @@ fun AddEditNoteScreen(
 
     fun saveNote() {
         scope.launch {
-            val content = contentTextField.text
             if (title.isNotBlank() || content.isNotBlank() || imageUris.isNotEmpty() || audioFiles.isNotEmpty()) {
                 isSaving = true
                 val note = if (existingNote != null) {
@@ -163,7 +151,7 @@ fun AddEditNoteScreen(
             if (title.isNotBlank()) {
                 append("$title\n\n")
             }
-            append(contentTextField.text)
+            append(content)
         }
         
         val shareIntent = Intent().apply {
@@ -176,7 +164,7 @@ fun AddEditNoteScreen(
 
     fun saveToPdf() {
         scope.launch {
-            val pdfFile = PdfHelper.createPdfFromNote(context, title, contentTextField.text, System.currentTimeMillis())
+            val pdfFile = PdfHelper.createPdfFromNote(context, title, content, System.currentTimeMillis())
             if (pdfFile != null) {
                 val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", pdfFile)
                 val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -188,37 +176,6 @@ fun AddEditNoteScreen(
         }
     }
 
-    fun insertMarkdown(action: MarkdownAction) {
-        val text = contentTextField.text
-        val selection = contentTextField.selection
-        
-        val newTextField = when {
-            selection.collapsed -> {
-                val newText = StringBuilder(text)
-                    .insert(selection.start, action.prefix + action.suffix)
-                    .toString()
-                val newCursorPos = selection.start + action.prefix.length
-                TextFieldValue(
-                    text = newText,
-                    selection = TextRange(newCursorPos)
-                )
-            }
-            else -> {
-                val selectedText = text.substring(selection.start, selection.end)
-                val wrappedText = action.prefix + selectedText + action.suffix
-                val newText = text.replaceRange(selection.start, selection.end, wrappedText)
-                val newCursorPos = selection.start + action.prefix.length + selectedText.length
-                TextFieldValue(
-                    text = newText,
-                    selection = TextRange(newCursorPos)
-                )
-            }
-        }
-        
-        contentTextField = newTextField
-        triggerAutoSave()
-    }
-
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -226,7 +183,10 @@ fun AddEditNoteScreen(
             val savedPath = ImageHelper.saveImageToInternalStorage(context, it)
             if (savedPath != null) {
                 imageUris = imageUris + savedPath
-                saveNote()
+                scope.launch {
+                    delay(100)
+                    saveNote()
+                }
             }
         }
     }
@@ -238,20 +198,26 @@ fun AddEditNoteScreen(
                 if (note != null) {
                     existingNote = note
                     title = note.title
-                    contentTextField = TextFieldValue(note.content)
+                    content = note.content
                     color = note.color
                     isPinned = note.isPinned
                     isTemplate = note.isTemplate
                     selectedLabels = note.labels.split(",").filter { it.isNotBlank() }.toSet()
                     imageUris = note.images.split(",").filter { it.isNotBlank() }
                     audioFiles = note.audioFiles.split(",").filter { it.isNotBlank() }
+                    delay(100)
+                    isInitialLoad = false
                 }
             }
+        } else {
+            isInitialLoad = false
         }
     }
 
-    LaunchedEffect(title, contentTextField.text, selectedLabels) {
-        triggerAutoSave()
+    LaunchedEffect(title, content, selectedLabels) {
+        if (!isInitialLoad) {
+            triggerAutoSave()
+        }
     }
 
     DisposableEffect(Unit) {
@@ -291,7 +257,6 @@ fun AddEditNoteScreen(
                 } else {
                     selectedLabels + label
                 }
-                triggerAutoSave()
             },
             onAddLabel = { labelName ->
                 noteViewModel.insertLabel(LabelEntity(name = labelName, color = 0))
@@ -394,7 +359,10 @@ fun AddEditNoteScreen(
                                     AudioHelper.stopRecording()
                                     currentRecordingPath?.let {
                                         audioFiles = audioFiles + it
-                                        saveNote()
+                                        scope.launch {
+                                            delay(100)
+                                            saveNote()
+                                        }
                                     }
                                     isRecording = false
                                     currentRecordingPath = null
@@ -422,7 +390,6 @@ fun AddEditNoteScreen(
                             },
                             leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, null) }
                         )
-                        HorizontalDivider()
                         DropdownMenuItem(
                             text = { Text(if (isTemplate) stringResource(R.string.remove_from_template) else stringResource(R.string.save_as_template)) },
                             onClick = {
@@ -462,17 +429,6 @@ fun AddEditNoteScreen(
                     actionIconContentColor = iconColor
                 )
             )
-        },
-        bottomBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                tonalElevation = 3.dp
-            ) {
-                MarkdownToolbar(
-                    onActionClick = { action -> insertMarkdown(action) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
         }
     ) { padding ->
         LazyColumn(
@@ -491,7 +447,6 @@ fun AddEditNoteScreen(
                             AssistChip(
                                 onClick = {
                                     selectedLabels = selectedLabels - label
-                                    triggerAutoSave()
                                 },
                                 label = { Text(label, style = MaterialTheme.typography.bodySmall) },
                                 trailingIcon = {
@@ -567,7 +522,10 @@ fun AddEditNoteScreen(
                         onClick = {
                             ImageHelper.deleteImage(imagePath)
                             imageUris = imageUris.filter { it != imagePath }
-                            saveNote()
+                            scope.launch {
+                                delay(100)
+                                saveNote()
+                            }
                         },
                         modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
                     ) {
@@ -618,7 +576,10 @@ fun AddEditNoteScreen(
                             IconButton(onClick = {
                                 AudioHelper.deleteAudio(audioPath)
                                 audioFiles = audioFiles.filter { it != audioPath }
-                                saveNote()
+                                scope.launch {
+                                    delay(100)
+                                    saveNote()
+                                }
                             }) {
                                 Icon(Icons.Outlined.Delete, stringResource(R.string.delete_audio))
                             }
@@ -629,14 +590,14 @@ fun AddEditNoteScreen(
 
             item {
                 BasicTextField(
-                    value = contentTextField,
-                    onValueChange = { contentTextField = it },
+                    value = content,
+                    onValueChange = { content = it },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
                         Box {
-                            if (contentTextField.text.isEmpty()) {
+                            if (content.isEmpty()) {
                                 Text(
                                     stringResource(R.string.content_hint),
                                     style = MaterialTheme.typography.bodyLarge,
@@ -646,48 +607,6 @@ fun AddEditNoteScreen(
                             innerTextField()
                         }
                     }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun MarkdownToolbar(
-    onActionClick: (MarkdownAction) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val scrollState = rememberScrollState()
-    
-    val markdownActions = listOf(
-        MarkdownAction(Icons.Outlined.FormatBold, "Bold", "**", "**"),
-        MarkdownAction(Icons.Outlined.FormatItalic, "Italic", "_", "_"),
-        MarkdownAction(Icons.Outlined.FormatStrikethrough, "Strikethrough", "~~", "~~"),
-        MarkdownAction(Icons.Outlined.Title, "Heading", "# "),
-        MarkdownAction(Icons.Outlined.Code, "Code", "`", "`"),
-        MarkdownAction(Icons.Outlined.FormatQuote, "Quote", "> "),
-        MarkdownAction(Icons.Outlined.FormatListBulleted, "Bullet", "- "),
-        MarkdownAction(Icons.Outlined.FormatListNumbered, "Number", "1. "),
-        MarkdownAction(Icons.Outlined.CheckBox, "Checkbox", "- [ ] "),
-        MarkdownAction(Icons.Outlined.Link, "Link", "[", "](url)"),
-        MarkdownAction(Icons.Outlined.HorizontalRule, "Divider", "\n---\n")
-    )
-    
-    Row(
-        modifier = modifier
-            .horizontalScroll(scrollState)
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        markdownActions.forEach { action ->
-            FilledTonalIconButton(
-                onClick = { onActionClick(action) },
-                modifier = Modifier.size(42.dp)
-            ) {
-                Icon(
-                    imageVector = action.icon,
-                    contentDescription = action.label,
-                    modifier = Modifier.size(20.dp)
                 )
             }
         }
