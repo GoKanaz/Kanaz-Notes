@@ -9,8 +9,6 @@ data class NoteEntity(
     val id: Int = 0,
     val title: String,
     val content: String,
-    val timestamp: Long,
-    val folderId: Int? = null,
     val color: Int = 0,
     val isPinned: Boolean = false,
     val isDeleted: Boolean = false,
@@ -18,5 +16,7 @@ data class NoteEntity(
     val isTrashed: Boolean = false,
     val labels: String = "",
     val images: String = "",
-    val audioFiles: String = ""
+    val audioFiles: String = "",
+    val timestamp: Long = System.currentTimeMillis(),
+    val isMarkdown: Boolean = false
 )

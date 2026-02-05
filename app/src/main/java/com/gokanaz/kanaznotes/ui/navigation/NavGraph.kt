@@ -31,6 +31,13 @@ fun NavGraph(
                 existingNoteId = null
             )
         }
+        composable("add_markdown_note") {
+            MarkdownNoteScreen(
+                noteViewModel = noteViewModel,
+                navController = navController,
+                noteId = null
+            )
+        }
         composable(
             route = "edit_note/{noteId}",
             arguments = listOf(
@@ -42,6 +49,19 @@ fun NavGraph(
                 noteViewModel = noteViewModel,
                 navController = navController,
                 existingNoteId = noteId
+            )
+        }
+        composable(
+            route = "edit_markdown_note/{noteId}",
+            arguments = listOf(
+                navArgument("noteId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getInt("noteId") ?: return@composable
+            MarkdownNoteScreen(
+                noteViewModel = noteViewModel,
+                navController = navController,
+                noteId = noteId
             )
         }
         composable("search") {

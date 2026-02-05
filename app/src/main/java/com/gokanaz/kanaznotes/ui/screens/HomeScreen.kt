@@ -88,6 +88,7 @@ fun HomeScreen(
     var noteForColor by remember { mutableStateOf<NoteEntity?>(null) }
     var selectedLabelFilter by remember { mutableStateOf<String?>(null) }
     var isGridLayout by remember { mutableStateOf(false) }
+    var showNoteTypeDialog by remember { mutableStateOf(false) }
     val isDark = isSystemInDarkTheme()
 
     val filteredNotes = if (selectedLabelFilter != null) {
@@ -96,6 +97,43 @@ fun HomeScreen(
         }
     } else {
         notes
+    }
+
+    if (showNoteTypeDialog) {
+        AlertDialog(
+            onDismissRequest = { showNoteTypeDialog = false },
+            title = { Text("Create New Note") },
+            text = {
+                Column {
+                    TextButton(
+                        onClick = {
+                            showNoteTypeDialog = false
+                            navController.navigate("add_note")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Outlined.Note, null, modifier = Modifier.padding(end = 8.dp))
+                        Text("Regular Note")
+                    }
+                    TextButton(
+                        onClick = {
+                            showNoteTypeDialog = false
+                            navController.navigate("add_markdown_note")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Outlined.Code, null, modifier = Modifier.padding(end = 8.dp))
+                        Text("Markdown Note")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showNoteTypeDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     if (showDeleteDialog && noteToDelete != null) {
@@ -337,7 +375,7 @@ fun HomeScreen(
             },
             floatingActionButton = {
                 if (selectedNotes.isEmpty()) {
-                    FloatingActionButton(onClick = { navController.navigate("add_note") }) {
+                    FloatingActionButton(onClick = { showNoteTypeDialog = true }) {
                         Icon(Icons.Default.Add, stringResource(R.string.add_note))
                     }
                 }
@@ -400,7 +438,11 @@ fun HomeScreen(
                                         if (selectedNotes.isNotEmpty()) {
                                             selectedNotes = if (note.id in selectedNotes) selectedNotes - note.id else selectedNotes + note.id
                                         } else {
-                                            navController.navigate("edit_note/${note.id}")
+                                            if (note.isMarkdown) {
+                                                navController.navigate("edit_markdown_note/${note.id}")
+                                            } else {
+                                                navController.navigate("edit_note/${note.id}")
+                                            }
                                         }
                                     },
                                     onArchive = {
@@ -432,7 +474,11 @@ fun HomeScreen(
                                     if (selectedNotes.isNotEmpty()) {
                                         selectedNotes = if (note.id in selectedNotes) selectedNotes - note.id else selectedNotes + note.id
                                     } else {
-                                        navController.navigate("edit_note/${note.id}")
+                                        if (note.isMarkdown) {
+                                            navController.navigate("edit_markdown_note/${note.id}")
+                                        } else {
+                                            navController.navigate("edit_note/${note.id}")
+                                        }
                                     }
                                 },
                                 onArchive = {
@@ -467,7 +513,11 @@ fun HomeScreen(
                                         if (selectedNotes.isNotEmpty()) {
                                             selectedNotes = if (note.id in selectedNotes) selectedNotes - note.id else selectedNotes + note.id
                                         } else {
-                                            navController.navigate("edit_note/${note.id}")
+                                            if (note.isMarkdown) {
+                                                navController.navigate("edit_markdown_note/${note.id}")
+                                            } else {
+                                                navController.navigate("edit_note/${note.id}")
+                                            }
                                         }
                                     },
                                     onArchive = {
@@ -498,7 +548,11 @@ fun HomeScreen(
                                     if (selectedNotes.isNotEmpty()) {
                                         selectedNotes = if (note.id in selectedNotes) selectedNotes - note.id else selectedNotes + note.id
                                     } else {
-                                        navController.navigate("edit_note/${note.id}")
+                                        if (note.isMarkdown) {
+                                            navController.navigate("edit_markdown_note/${note.id}")
+                                        } else {
+                                            navController.navigate("edit_note/${note.id}")
+                                        }
                                     }
                                 },
                                 onArchive = {
@@ -573,6 +627,10 @@ fun NoteCard(
                 Row {
                     if (note.isPinned) {
                         Icon(Icons.Filled.PushPin, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                    }
+                    if (note.isMarkdown) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(Icons.Filled.Code, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.secondary)
                     }
                     if (isSelected) {
                         Spacer(modifier = Modifier.width(4.dp))
