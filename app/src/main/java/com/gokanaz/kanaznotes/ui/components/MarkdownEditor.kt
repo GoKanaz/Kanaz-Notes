@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.github.jeziellago.compose.markdowntext.MarkdownText
 
 @Composable
 fun MarkdownEditor(
@@ -25,7 +24,7 @@ fun MarkdownEditor(
     val focusRequester = remember { FocusRequester() }
     
     if (isPreviewMode) {
-        MarkdownText(
+        MarkdownPreview(
             markdown = value.text,
             modifier = modifier
                 .fillMaxSize()
@@ -60,6 +59,20 @@ fun MarkdownEditor(
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
         }
+    }
+}
+
+@Composable
+fun MarkdownPreview(
+    markdown: String,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = markdown,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
