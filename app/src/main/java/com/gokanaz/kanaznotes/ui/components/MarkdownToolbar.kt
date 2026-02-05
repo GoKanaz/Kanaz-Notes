@@ -109,7 +109,7 @@ fun MarkdownToolbar(
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBox(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 otherActions.forEach { action ->
                     ToolbarButton(action = action, onClick = { onActionClick(action) })
