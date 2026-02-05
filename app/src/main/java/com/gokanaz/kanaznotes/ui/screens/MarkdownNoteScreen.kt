@@ -11,18 +11,73 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.ui.components.*
+import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
+import com.gokanaz.kanaznotes.data.local.NoteEntity
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarkdownNoteScreen(
+    noteViewModel: NoteViewModel,
     navController: NavHostController,
     noteId: Int? = null
 ) {
+    val scope = rememberCoroutineScope()
+    
     var textValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
     var isPreviewMode by rememberSaveable { mutableStateOf(false) }
     var title by rememberSaveable { mutableStateOf("") }
+    var color by rememberSaveable { mutableStateOf(0) }
+    var isPinned by rememberSaveable { mutableStateOf(false) }
+    var existingNote by remember { mutableStateOf<NoteEntity?>(null) }
+    
+    LaunchedEffect(noteId) {
+        if (noteId != null) {
+            scope.launch {
+                val note = noteViewModel.getNoteById(noteId)
+                if (note != null) {
+                    existingNote = note
+                    title = note.title
+                    textValue = TextFieldValue(note.content)
+                    color = note.color
+                    isPinned = note.isPinned
+                }
+            }
+        }
+    }
+    
+    fun saveNote() {
+        scope.launch {
+            val note = if (existingNote != null) {
+                existingNote!!.copy(
+                    title = title,
+                    content = textValue.text,
+                    color = color,
+                    isPinned = isPinned,
+                    isMarkdown = true,
+                    timestamp = System.currentTimeMillis()
+                )
+            } else {
+                NoteEntity(
+                    title = title,
+                    content = textValue.text,
+                    color = color,
+                    isPinned = isPinned,
+                    isMarkdown = true,
+                    timestamp = System.currentTimeMillis()
+                )
+            }
+            
+            if (existingNote != null) {
+                noteViewModel.updateNote(note)
+            } else {
+                noteViewModel.insertNote(note)
+                existingNote = note.copy(id = note.id)
+            }
+        }
+    }
     
     Scaffold(
         topBar = {
@@ -31,25 +86,36 @@ fun MarkdownNoteScreen(
                     if (title.isNotBlank()) {
                         Text(title)
                     } else {
-                        Text("New Note")
+                        Text("Markdown Note")
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { 
+                        saveNote()
+                        navController.popBackStack()
+                    }) {
                         Icon(Icons.Default.ArrowBack, "Back")
                     }
                 },
                 actions = {
+                    IconButton(onClick = {
+                        isPinned = !isPinned
+                        saveNote()
+                    }) {
+                        Icon(
+                            if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                            "Pin"
+                        )
+                    }
                     IconButton(
-                        onClick = { isPreviewMode = !isPreviewMode }
+                        onClick = { 
+                            isPreviewMode = !isPreviewMode
+                        }
                     ) {
                         Icon(
                             imageVector = if (isPreviewMode) Icons.Default.Edit else Icons.Default.Visibility,
                             contentDescription = if (isPreviewMode) "Edit Mode" else "Preview Mode"
                         )
-                    }
-                    IconButton(onClick = { /* Save note */ }) {
-                        Icon(Icons.Default.Save, "Save")
                     }
                 }
             )
@@ -59,6 +125,7 @@ fun MarkdownNoteScreen(
                 MarkdownToolbar(
                     onActionClick = { action ->
                         textValue = insertMarkdown(textValue, action)
+                        saveNote()
                     }
                 )
             }
@@ -72,7 +139,10 @@ fun MarkdownNoteScreen(
             if (!isPreviewMode) {
                 OutlinedTextField(
                     value = title,
-                    onValueChange = { title = it },
+                    onValueChange = { 
+                        title = it
+                        saveNote()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -86,12 +156,13 @@ fun MarkdownNoteScreen(
                 value = textValue,
                 onValueChange = { newValue ->
                     if (newValue.text.length > textValue.text.length &&
-                        newValue.text.last() == '\n'
+                        newValue.text.lastOrNull() == '\n'
                     ) {
                         textValue = handleEnterKey(textValue)
                     } else {
                         textValue = newValue
                     }
+                    saveNote()
                 },
                 isPreviewMode = isPreviewMode,
                 modifier = Modifier.weight(1f),

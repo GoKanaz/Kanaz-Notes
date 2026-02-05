@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 data class MarkdownAction(
@@ -26,32 +25,23 @@ fun MarkdownToolbar(
     onActionClick: (MarkdownAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberScrollState()
-    
     val formattingActions = listOf(
         MarkdownAction(Icons.Outlined.FormatBold, "Bold", "**", "**"),
         MarkdownAction(Icons.Outlined.FormatItalic, "Italic", "_", "_"),
-        MarkdownAction(Icons.Outlined.FormatUnderlined, "Underline", "<u>", "</u>"),
-        MarkdownAction(Icons.Outlined.FormatStrikethrough, "Strikethrough", "~~", "~~")
+        MarkdownAction(Icons.Outlined.FormatStrikethrough, "Strikethrough", "~~", "~~"),
+        MarkdownAction(Icons.Outlined.Code, "Code", "`", "`")
     )
     
     val structureActions = listOf(
         MarkdownAction(Icons.Outlined.Title, "H1", "# ", isBlock = true),
-        MarkdownAction(Icons.Outlined.Code, "Code", "`", "`"),
         MarkdownAction(Icons.Outlined.DataObject, "Code Block", "```\n", "\n```", isBlock = true),
-        MarkdownAction(Icons.Outlined.FormatQuote, "Quote", "> ", isBlock = true)
+        MarkdownAction(Icons.Outlined.FormatQuote, "Quote", "> ", isBlock = true),
+        MarkdownAction(Icons.Outlined.HorizontalRule, "Divider", "\n---\n", isBlock = true)
     )
     
     val listActions = listOf(
         MarkdownAction(Icons.Outlined.FormatListBulleted, "Bullet", "- ", isBlock = true),
         MarkdownAction(Icons.Outlined.FormatListNumbered, "Number", "1. ", isBlock = true),
-        MarkdownAction(Icons.Outlined.Functions, "Math", "$", "$"),
-        MarkdownAction(Icons.Outlined.BarChart, "Table", "| Header |\n|--------|\n| Cell |", isBlock = true)
-    )
-    
-    val otherActions = listOf(
-        MarkdownAction(Icons.Outlined.Label, "Tag", "#", ""),
-        MarkdownAction(Icons.Outlined.HorizontalRule, "Divider", "\n---\n", isBlock = true),
         MarkdownAction(Icons.Outlined.CheckBox, "Checkbox", "- [ ] ", isBlock = true),
         MarkdownAction(Icons.Outlined.Link, "Link", "[", "](url)")
     )
@@ -65,7 +55,7 @@ fun MarkdownToolbar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(scrollState)
+                    .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -98,20 +88,6 @@ fun MarkdownToolbar(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 listActions.forEach { action ->
-                    ToolbarButton(action = action, onClick = { onActionClick(action) })
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                otherActions.forEach { action ->
                     ToolbarButton(action = action, onClick = { onActionClick(action) })
                 }
             }
