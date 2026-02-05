@@ -79,6 +79,7 @@ fun AddEditNoteScreen(
     var isRecording by remember { mutableStateOf(false) }
     var currentRecordingPath by remember { mutableStateOf<String?>(null) }
     var playingAudioIndex by remember { mutableStateOf<Int?>(null) }
+    var isInitialLoad by remember { mutableStateOf(true) }
 
     val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
 
@@ -182,6 +183,10 @@ fun AddEditNoteScreen(
             val savedPath = ImageHelper.saveImageToInternalStorage(context, it)
             if (savedPath != null) {
                 imageUris = imageUris + savedPath
+                scope.launch {
+                    delay(100)
+                    saveNote()
+                }
             }
         }
     }
@@ -200,18 +205,18 @@ fun AddEditNoteScreen(
                     selectedLabels = note.labels.split(",").filter { it.isNotBlank() }.toSet()
                     imageUris = note.images.split(",").filter { it.isNotBlank() }
                     audioFiles = note.audioFiles.split(",").filter { it.isNotBlank() }
+                    delay(100)
+                    isInitialLoad = false
                 }
             }
+        } else {
+            isInitialLoad = false
         }
     }
 
     LaunchedEffect(title, content, selectedLabels) {
-        triggerAutoSave()
-    }
-
-    LaunchedEffect(imageUris, audioFiles) {
-        if (imageUris.isNotEmpty() || audioFiles.isNotEmpty()) {
-            saveNote()
+        if (!isInitialLoad) {
+            triggerAutoSave()
         }
     }
 
@@ -252,7 +257,6 @@ fun AddEditNoteScreen(
                 } else {
                     selectedLabels + label
                 }
-                triggerAutoSave()
             },
             onAddLabel = { labelName ->
                 noteViewModel.insertLabel(LabelEntity(name = labelName, color = 0))
@@ -355,6 +359,10 @@ fun AddEditNoteScreen(
                                     AudioHelper.stopRecording()
                                     currentRecordingPath?.let {
                                         audioFiles = audioFiles + it
+                                        scope.launch {
+                                            delay(100)
+                                            saveNote()
+                                        }
                                     }
                                     isRecording = false
                                     currentRecordingPath = null
@@ -439,7 +447,6 @@ fun AddEditNoteScreen(
                             AssistChip(
                                 onClick = {
                                     selectedLabels = selectedLabels - label
-                                    triggerAutoSave()
                                 },
                                 label = { Text(label, style = MaterialTheme.typography.bodySmall) },
                                 trailingIcon = {
@@ -515,6 +522,10 @@ fun AddEditNoteScreen(
                         onClick = {
                             ImageHelper.deleteImage(imagePath)
                             imageUris = imageUris.filter { it != imagePath }
+                            scope.launch {
+                                delay(100)
+                                saveNote()
+                            }
                         },
                         modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
                     ) {
@@ -565,6 +576,10 @@ fun AddEditNoteScreen(
                             IconButton(onClick = {
                                 AudioHelper.deleteAudio(audioPath)
                                 audioFiles = audioFiles.filter { it != audioPath }
+                                scope.launch {
+                                    delay(100)
+                                    saveNote()
+                                }
                             }) {
                                 Icon(Icons.Outlined.Delete, stringResource(R.string.delete_audio))
                             }
