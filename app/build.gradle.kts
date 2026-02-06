@@ -60,3 +60,7 @@ dependencies {
     
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
+
+dependencies {
+    implementation("androidx.palette:palette-ktx:1.0.0")
+}
