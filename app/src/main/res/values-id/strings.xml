@@ -23,6 +23,8 @@
     <string name="no_notes_with_label">Tidak ada catatan dengan label ini</string>
     <string name="label">Label</string>
     <string name="remove_filter">Hapus Filter</string>
+    <string name="trash">Tempat Sampah</string>
+    <string name="labels">Label</string>
     
     <string name="title_hint">Judul</string>
     <string name="content_hint">Tambah catatan…</string>
@@ -53,6 +55,8 @@
     <string name="restore">Pulihkan</string>
     <string name="delete_forever">Hapus Selamanya</string>
     <string name="delete_forever_message">Catatan ini akan dihapus secara permanen dan tidak dapat dipulihkan.</string>
+    <string name="move_to_trash">Pindahkan ke Tempat Sampah</string>
+    <string name="move_to_trash_message">Catatan ini akan dipindahkan ke tempat sampah.</string>
     
     <string name="appearance">Tampilan</string>
     <string name="general">Umum</string>
@@ -117,16 +121,13 @@
     <string name="archive_empty">Arsip kosong</string>
     <string name="archived_notes_appear_here">Catatan yang diarsip akan muncul di sini</string>
     
-    <string name="trash">Sampah</string>
-    <string name="labels">Label</string>
-    <string name="move_to_trash">Pindah ke Sampah</string>
-    <string name="move_to_trash_message">Catatan ini akan dipindahkan ke sampah.</string>
-    <string name="trash_notes">Sampah</string>
-    <string name="trash_empty">Sampah kosong</string>
+    <string name="trash_notes">Tempat Sampah</string>
+    <string name="trash_empty">Tempat sampah kosong</string>
     <string name="trash_notes_appear_here">Catatan yang dihapus akan muncul di sini</string>
-    <string name="empty_trash">Kosongkan Sampah</string>
-    <string name="empty_trash_message">Semua catatan di sampah akan dihapus permanen. Lanjutkan?</string>
+    <string name="empty_trash">Kosongkan Tempat Sampah</string>
+    <string name="empty_trash_message">Semua catatan di tempat sampah akan dihapus permanen. Lanjutkan?</string>
     <string name="empty_trash_confirm">Kosongkan</string>
+    
     <string name="manage_all_labels">Kelola Label</string>
     <string name="no_labels">Belum ada label</string>
     <string name="labels_appear_here">Label akan muncul di sini</string>
