@@ -11,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,8 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -32,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -45,8 +45,6 @@ import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.data.local.LabelEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.data.local.NoteEntity
-import com.gokanaz.kanaznotes.ui.components.FormattingAction
-import com.gokanaz.kanaznotes.ui.components.FormattingToolbar
 import com.gokanaz.kanaznotes.util.ImageHelper
 import com.gokanaz.kanaznotes.util.AudioHelper
 import com.gokanaz.kanaznotes.util.PdfHelper
@@ -55,6 +53,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import android.graphics.BitmapFactory
 import java.io.File
+
+data class MarkdownAction(
+    val icon: ImageVector,
+    val label: String,
+    val prefix: String,
+    val suffix: String = ""
+)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -67,15 +72,14 @@ fun AddEditNoteScreen(
     val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
 
-    var titleValue by remember { mutableStateOf(TextFieldValue("")) }
-    var contentValue by remember { mutableStateOf(TextFieldValue("")) }
+    var title by remember { mutableStateOf("") }
+    var contentTextField by remember { mutableStateOf(TextFieldValue("")) }
     var color by remember { mutableStateOf(0) }
     var isPinned by remember { mutableStateOf(false) }
     var isTemplate by remember { mutableStateOf(false) }
     var selectedLabels by remember { mutableStateOf<Set<String>>(emptySet()) }
     var imageUris by remember { mutableStateOf<List<String>>(emptyList()) }
     var audioFiles by remember { mutableStateOf<List<String>>(emptyList()) }
-    var isPreviewMode by remember { mutableStateOf(false) }
     
     var showColorPicker by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
@@ -87,7 +91,6 @@ fun AddEditNoteScreen(
     var isRecording by remember { mutableStateOf(false) }
     var currentRecordingPath by remember { mutableStateOf<String?>(null) }
     var playingAudioIndex by remember { mutableStateOf<Int?>(null) }
-    var isInitialLoad by remember { mutableStateOf(true) }
 
     val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
 
@@ -105,12 +108,13 @@ fun AddEditNoteScreen(
 
     fun saveNote() {
         scope.launch {
-            if (titleValue.text.isNotBlank() || contentValue.text.isNotBlank() || imageUris.isNotEmpty() || audioFiles.isNotEmpty()) {
+            val content = contentTextField.text
+            if (title.isNotBlank() || content.isNotBlank() || imageUris.isNotEmpty() || audioFiles.isNotEmpty()) {
                 isSaving = true
                 val note = if (existingNote != null) {
                     existingNote!!.copy(
-                        title = titleValue.text,
-                        content = contentValue.text,
+                        title = title,
+                        content = content,
                         color = color,
                         isPinned = isPinned,
                         isTemplate = isTemplate,
@@ -121,8 +125,8 @@ fun AddEditNoteScreen(
                     )
                 } else {
                     NoteEntity(
-                        title = titleValue.text,
-                        content = contentValue.text,
+                        title = title,
+                        content = content,
                         color = color,
                         isPinned = isPinned,
                         isTemplate = isTemplate,
@@ -153,16 +157,42 @@ fun AddEditNoteScreen(
             saveNote()
         }
     }
-    
-    fun applyFormatting(action: FormattingAction) {
-        val text = contentValue.text
-        val selection = contentValue.selection
-        
-        if (action.label == "Undo" || action.label == "Redo") {
-            return
+
+    fun shareNote() {
+        val shareText = buildString {
+            if (title.isNotBlank()) {
+                append("$title\n\n")
+            }
+            append(contentTextField.text)
         }
         
-        val newValue = when {
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            type = "text/plain"
+        }
+        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_note)))
+    }
+
+    fun saveToPdf() {
+        scope.launch {
+            val pdfFile = PdfHelper.createPdfFromNote(context, title, contentTextField.text, System.currentTimeMillis())
+            if (pdfFile != null) {
+                val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", pdfFile)
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "application/pdf")
+                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
+                context.startActivity(intent)
+            }
+        }
+    }
+
+    fun insertMarkdown(action: MarkdownAction) {
+        val text = contentTextField.text
+        val selection = contentTextField.selection
+        
+        val newTextField = when {
             selection.collapsed -> {
                 val newText = StringBuilder(text)
                     .insert(selection.start, action.prefix + action.suffix)
@@ -185,38 +215,8 @@ fun AddEditNoteScreen(
             }
         }
         
-        contentValue = newValue
+        contentTextField = newTextField
         triggerAutoSave()
-    }
-
-    fun shareNote() {
-        val shareText = buildString {
-            if (titleValue.text.isNotBlank()) {
-                append("${titleValue.text}\n\n")
-            }
-            append(contentValue.text)
-        }
-        
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, shareText)
-            type = "text/plain"
-        }
-        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_note)))
-    }
-
-    fun saveToPdf() {
-        scope.launch {
-            val pdfFile = PdfHelper.createPdfFromNote(context, titleValue.text, contentValue.text, System.currentTimeMillis())
-            if (pdfFile != null) {
-                val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", pdfFile)
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "application/pdf")
-                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                }
-                context.startActivity(intent)
-            }
-        }
     }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -226,10 +226,7 @@ fun AddEditNoteScreen(
             val savedPath = ImageHelper.saveImageToInternalStorage(context, it)
             if (savedPath != null) {
                 imageUris = imageUris + savedPath
-                scope.launch {
-                    delay(100)
-                    saveNote()
-                }
+                saveNote()
             }
         }
     }
@@ -240,27 +237,21 @@ fun AddEditNoteScreen(
                 val note = noteViewModel.getNoteById(existingNoteId)
                 if (note != null) {
                     existingNote = note
-                    titleValue = TextFieldValue(note.title)
-                    contentValue = TextFieldValue(note.content)
+                    title = note.title
+                    contentTextField = TextFieldValue(note.content)
                     color = note.color
                     isPinned = note.isPinned
                     isTemplate = note.isTemplate
                     selectedLabels = note.labels.split(",").filter { it.isNotBlank() }.toSet()
                     imageUris = note.images.split(",").filter { it.isNotBlank() }
                     audioFiles = note.audioFiles.split(",").filter { it.isNotBlank() }
-                    delay(100)
-                    isInitialLoad = false
                 }
             }
-        } else {
-            isInitialLoad = false
         }
     }
 
-    LaunchedEffect(titleValue.text, contentValue.text, selectedLabels) {
-        if (!isInitialLoad) {
-            triggerAutoSave()
-        }
+    LaunchedEffect(title, contentTextField.text, selectedLabels) {
+        triggerAutoSave()
     }
 
     DisposableEffect(Unit) {
@@ -300,6 +291,7 @@ fun AddEditNoteScreen(
                 } else {
                     selectedLabels + label
                 }
+                triggerAutoSave()
             },
             onAddLabel = { labelName ->
                 noteViewModel.insertLabel(LabelEntity(name = labelName, color = 0))
@@ -372,13 +364,6 @@ fun AddEditNoteScreen(
                     IconButton(onClick = { showColorPicker = true }) {
                         Icon(Icons.Outlined.Circle, stringResource(R.string.choose_color), tint = iconColor)
                     }
-                    IconButton(onClick = { isPreviewMode = !isPreviewMode }) {
-                        Icon(
-                            if (isPreviewMode) Icons.Default.Edit else Icons.Default.Visibility,
-                            if (isPreviewMode) "Edit" else "Preview",
-                            tint = iconColor
-                        )
-                    }
                     IconButton(onClick = { showMoreMenu = true }) {
                         Icon(Icons.Default.MoreVert, null, tint = iconColor)
                     }
@@ -409,10 +394,7 @@ fun AddEditNoteScreen(
                                     AudioHelper.stopRecording()
                                     currentRecordingPath?.let {
                                         audioFiles = audioFiles + it
-                                        scope.launch {
-                                            delay(100)
-                                            saveNote()
-                                        }
+                                        saveNote()
                                     }
                                     isRecording = false
                                     currentRecordingPath = null
@@ -440,6 +422,7 @@ fun AddEditNoteScreen(
                             },
                             leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, null) }
                         )
+                        HorizontalDivider()
                         DropdownMenuItem(
                             text = { Text(if (isTemplate) stringResource(R.string.remove_from_template) else stringResource(R.string.save_as_template)) },
                             onClick = {
@@ -481,47 +464,74 @@ fun AddEditNoteScreen(
             )
         },
         bottomBar = {
-            if (!isPreviewMode) {
-                FormattingToolbar(
-                    onActionClick = { action ->
-                        applyFormatting(action)
-                    }
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                tonalElevation = 3.dp
+            ) {
+                MarkdownToolbar(
+                    onActionClick = { action -> insertMarkdown(action) },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
     ) { padding ->
-        if (isPreviewMode) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-            ) {
-                if (titleValue.text.isNotBlank()) {
-                    Text(
-                        text = titleValue.text,
-                        style = MaterialTheme.typography.displaySmall,
-                        color = textColor
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-                
-                if (selectedLabels.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+        ) {
+            if (selectedLabels.isNotEmpty()) {
+                item {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         selectedLabels.forEach { label ->
                             AssistChip(
-                                onClick = {},
-                                label = { Text(label, style = MaterialTheme.typography.bodySmall) }
+                                onClick = {
+                                    selectedLabels = selectedLabels - label
+                                    triggerAutoSave()
+                                },
+                                label = { Text(label, style = MaterialTheme.typography.bodySmall) },
+                                trailingIcon = {
+                                    Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
+                                }
                             )
                         }
                     }
                 }
-                
-                imageUris.forEach { imagePath ->
+            }
+
+            item {
+                BasicTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    singleLine = true,
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (title.isEmpty()) {
+                                Text(
+                                    stringResource(R.string.title_hint),
+                                    style = MaterialTheme.typography.displaySmall,
+                                    color = textColor.copy(alpha = 0.4f)
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
+                )
+            }
+
+            items(imageUris) { imagePath ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
                     val bitmap = remember(imagePath) {
                         try {
                             BitmapFactory.decodeFile(imagePath)?.asImageBitmap()
@@ -536,205 +546,183 @@ fun AddEditNoteScreen(
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp)
+                                .heightIn(max = 300.dp)
                                 .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Fit
+                            contentScale = ContentScale.Crop
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Outlined.BrokenImage, stringResource(R.string.image_not_loaded))
+                        }
                     }
-                }
-                
-                if (contentValue.text.isNotBlank()) {
-                    SelectionContainer {
-                        Text(
-                            text = contentValue.text,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = textColor
+                    
+                    IconButton(
+                        onClick = {
+                            ImageHelper.deleteImage(imagePath)
+                            imageUris = imageUris.filter { it != imagePath }
+                            saveNote()
+                        },
+                        modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                .padding(4.dp)
                         )
                     }
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp)
-            ) {
-                if (selectedLabels.isNotEmpty()) {
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            selectedLabels.forEach { label ->
-                                AssistChip(
-                                    onClick = {
-                                        selectedLabels = selectedLabels - label
-                                    },
-                                    label = { Text(label, style = MaterialTheme.typography.bodySmall) },
-                                    trailingIcon = {
-                                        Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
+
+            items(audioFiles.size) { index ->
+                val audioPath = audioFiles[index]
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.AudioFile, null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Audio ${index + 1}", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        Row {
+                            IconButton(onClick = {
+                                if (playingAudioIndex == index && AudioHelper.isPlaying()) {
+                                    AudioHelper.stopAudio()
+                                    playingAudioIndex = null
+                                } else {
+                                    AudioHelper.playAudio(audioPath) {
+                                        playingAudioIndex = null
                                     }
+                                    playingAudioIndex = index
+                                }
+                            }) {
+                                Icon(
+                                    if (playingAudioIndex == index && AudioHelper.isPlaying()) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+                                    stringResource(R.string.play_audio)
                                 )
                             }
-                        }
-                    }
-                }
-
-                item {
-                    BasicTextField(
-                        value = titleValue,
-                        onValueChange = { titleValue = it },
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                        textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        singleLine = true,
-                        decorationBox = { innerTextField ->
-                            Box {
-                                if (titleValue.text.isEmpty()) {
-                                    Text(
-                                        stringResource(R.string.title_hint),
-                                        style = MaterialTheme.typography.displaySmall,
-                                        color = textColor.copy(alpha = 0.4f)
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        }
-                    )
-                }
-
-                items(imageUris) { imagePath ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                    ) {
-                        val bitmap = remember(imagePath) {
-                            try {
-                                BitmapFactory.decodeFile(imagePath)?.asImageBitmap()
-                            } catch (e: Exception) {
-                                null
-                            }
-                        }
-                        
-                        if (bitmap != null) {
-                            Image(
-                                bitmap = bitmap,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = 300.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Outlined.BrokenImage, stringResource(R.string.image_not_loaded))
-                            }
-                        }
-                        
-                        IconButton(
-                            onClick = {
-                                ImageHelper.deleteImage(imagePath)
-                                imageUris = imageUris.filter { it != imagePath }
-                                scope.launch {
-                                    delay(100)
-                                    saveNote()
-                                }
-                            },
-                            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Close,
-                                null,
-                                tint = Color.White,
-                                modifier = Modifier
-                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                    .padding(4.dp)
-                            )
-                        }
-                    }
-                }
-
-                items(audioFiles.size) { index ->
-                    val audioPath = audioFiles[index]
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Outlined.AudioFile, null)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Audio ${index + 1}", style = MaterialTheme.typography.bodyMedium)
-                            }
-                            Row {
-                                IconButton(onClick = {
-                                    if (playingAudioIndex == index && AudioHelper.isPlaying()) {
-                                        AudioHelper.stopAudio()
-                                        playingAudioIndex = null
-                                    } else {
-                                        AudioHelper.playAudio(audioPath) {
-                                            playingAudioIndex = null
-                                        }
-                                        playingAudioIndex = index
-                                    }
-                                }) {
-                                    Icon(
-                                        if (playingAudioIndex == index && AudioHelper.isPlaying()) Icons.Filled.Stop else Icons.Filled.PlayArrow,
-                                        stringResource(R.string.play_audio)
-                                    )
-                                }
-                                IconButton(onClick = {
-                                    AudioHelper.deleteAudio(audioPath)
-                                    audioFiles = audioFiles.filter { it != audioPath }
-                                    scope.launch {
-                                        delay(100)
-                                        saveNote()
-                                    }
-                                }) {
-                                    Icon(Icons.Outlined.Delete, stringResource(R.string.delete_audio))
-                                }
+                            IconButton(onClick = {
+                                AudioHelper.deleteAudio(audioPath)
+                                audioFiles = audioFiles.filter { it != audioPath }
+                                saveNote()
+                            }) {
+                                Icon(Icons.Outlined.Delete, stringResource(R.string.delete_audio))
                             }
                         }
                     }
                 }
+            }
 
-                item {
-                    BasicTextField(
-                        value = contentValue,
-                        onValueChange = { contentValue = it },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        decorationBox = { innerTextField ->
-                            Box {
-                                if (contentValue.text.isEmpty()) {
-                                    Text(
-                                        stringResource(R.string.content_hint),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = textColor.copy(alpha = 0.4f)
-                                    )
-                                }
-                                innerTextField()
+            item {
+                BasicTextField(
+                    value = contentTextField,
+                    onValueChange = { contentTextField = it },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (contentTextField.text.isEmpty()) {
+                                Text(
+                                    stringResource(R.string.content_hint),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = textColor.copy(alpha = 0.4f)
+                                )
                             }
+                            innerTextField()
                         }
-                    )
-                }
+                    }
+                )
             }
         }
     }
+}
+
+@Composable
+fun MarkdownToolbar(
+    onActionClick: (MarkdownAction) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scrollState = rememberScrollState()
+    
+    val markdownActions = listOf(
+        MarkdownAction(Icons.Outlined.FormatBold, "Bold", "**", "**"),
+        MarkdownAction(Icons.Outlined.FormatItalic, "Italic", "_", "_"),
+        MarkdownAction(Icons.Outlined.FormatStrikethrough, "Strikethrough", "~~", "~~"),
+        MarkdownAction(Icons.Outlined.Title, "Heading", "# "),
+        MarkdownAction(Icons.Outlined.Code, "Code", "`", "`"),
+        MarkdownAction(Icons.Outlined.FormatQuote, "Quote", "> "),
+        MarkdownAction(Icons.Outlined.FormatListBulleted, "Bullet", "- "),
+        MarkdownAction(Icons.Outlined.FormatListNumbered, "Number", "1. "),
+        MarkdownAction(Icons.Outlined.CheckBox, "Checkbox", "- [ ] "),
+        MarkdownAction(Icons.Outlined.Link, "Link", "[", "](url)"),
+        MarkdownAction(Icons.Outlined.HorizontalRule, "Divider", "\n---\n")
+    )
+    
+    Row(
+        modifier = modifier
+            .horizontalScroll(scrollState)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        markdownActions.forEach { action ->
+            FilledTonalIconButton(
+                onClick = { onActionClick(action) },
+                modifier = Modifier.size(42.dp)
+            ) {
+                Icon(
+                    imageVector = action.icon,
+                    contentDescription = action.label,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+val noteColors = listOf(
+    Color(0xFFF5F5F5),
+    Color(0xFFFFF9C4),
+    Color(0xFFE8F5E9),
+    Color(0xFFE3F2FD),
+    Color(0xFFFCE4EC),
+    Color(0xFFEDE7F6),
+    Color(0xFFF3E0D0),
+    Color(0xFFE0F7FA)
+)
+
+val noteColorsDark = listOf(
+    Color(0xFF2C2C2C),
+    Color(0xFF3E3A2F),
+    Color(0xFF2D3A2E),
+    Color(0xFF2A3441),
+    Color(0xFF3D2E35),
+    Color(0xFF352F3D),
+    Color(0xFF3A332C),
+    Color(0xFF2C3839)
+)
+
+fun getCardColor(colorIndex: Int, isDark: Boolean): Color {
+    val index = colorIndex.coerceIn(0, noteColors.size - 1)
+    return if (isDark) noteColorsDark[index] else noteColors[index]
+}
+
+fun getTextColor(colorIndex: Int, isDark: Boolean): Color {
+    return if (isDark) Color(0xFFE0E0E0) else Color(0xFF1C1C1C)
 }
 
 @Composable
