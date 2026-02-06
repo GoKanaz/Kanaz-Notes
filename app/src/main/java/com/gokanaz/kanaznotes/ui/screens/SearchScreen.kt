@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
+import com.gokanaz.kanaznotes.ui.theme.noteColors
 import java.text.SimpleDateFormat
 import java.util.Date
 
