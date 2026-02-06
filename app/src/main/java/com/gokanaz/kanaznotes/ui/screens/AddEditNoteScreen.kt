@@ -19,6 +19,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -34,6 +35,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -42,6 +45,8 @@ import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.data.local.LabelEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.data.local.NoteEntity
+import com.gokanaz.kanaznotes.ui.components.FormattingAction
+import com.gokanaz.kanaznotes.ui.components.FormattingToolbar
 import com.gokanaz.kanaznotes.util.ImageHelper
 import com.gokanaz.kanaznotes.util.AudioHelper
 import com.gokanaz.kanaznotes.util.PdfHelper
@@ -62,8 +67,8 @@ fun AddEditNoteScreen(
     val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
 
-    var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
+    var titleValue by remember { mutableStateOf(TextFieldValue("")) }
+    var contentValue by remember { mutableStateOf(TextFieldValue("")) }
     var color by remember { mutableStateOf(0) }
     var isPinned by remember { mutableStateOf(false) }
     var isTemplate by remember { mutableStateOf(false) }
@@ -100,12 +105,12 @@ fun AddEditNoteScreen(
 
     fun saveNote() {
         scope.launch {
-            if (title.isNotBlank() || content.isNotBlank() || imageUris.isNotEmpty() || audioFiles.isNotEmpty()) {
+            if (titleValue.text.isNotBlank() || contentValue.text.isNotBlank() || imageUris.isNotEmpty() || audioFiles.isNotEmpty()) {
                 isSaving = true
                 val note = if (existingNote != null) {
                     existingNote!!.copy(
-                        title = title,
-                        content = content,
+                        title = titleValue.text,
+                        content = contentValue.text,
                         color = color,
                         isPinned = isPinned,
                         isTemplate = isTemplate,
@@ -116,8 +121,8 @@ fun AddEditNoteScreen(
                     )
                 } else {
                     NoteEntity(
-                        title = title,
-                        content = content,
+                        title = titleValue.text,
+                        content = contentValue.text,
                         color = color,
                         isPinned = isPinned,
                         isTemplate = isTemplate,
@@ -148,13 +153,48 @@ fun AddEditNoteScreen(
             saveNote()
         }
     }
+    
+    fun applyFormatting(action: FormattingAction) {
+        val text = contentValue.text
+        val selection = contentValue.selection
+        
+        if (action.label == "Undo" || action.label == "Redo") {
+            return
+        }
+        
+        val newValue = when {
+            selection.collapsed -> {
+                val newText = StringBuilder(text)
+                    .insert(selection.start, action.prefix + action.suffix)
+                    .toString()
+                val newCursorPos = selection.start + action.prefix.length
+                TextFieldValue(
+                    text = newText,
+                    selection = TextRange(newCursorPos)
+                )
+            }
+            else -> {
+                val selectedText = text.substring(selection.start, selection.end)
+                val wrappedText = action.prefix + selectedText + action.suffix
+                val newText = text.replaceRange(selection.start, selection.end, wrappedText)
+                val newCursorPos = selection.start + action.prefix.length + selectedText.length
+                TextFieldValue(
+                    text = newText,
+                    selection = TextRange(newCursorPos)
+                )
+            }
+        }
+        
+        contentValue = newValue
+        triggerAutoSave()
+    }
 
     fun shareNote() {
         val shareText = buildString {
-            if (title.isNotBlank()) {
-                append("$title\n\n")
+            if (titleValue.text.isNotBlank()) {
+                append("${titleValue.text}\n\n")
             }
-            append(content)
+            append(contentValue.text)
         }
         
         val shareIntent = Intent().apply {
@@ -167,7 +207,7 @@ fun AddEditNoteScreen(
 
     fun saveToPdf() {
         scope.launch {
-            val pdfFile = PdfHelper.createPdfFromNote(context, title, content, System.currentTimeMillis())
+            val pdfFile = PdfHelper.createPdfFromNote(context, titleValue.text, contentValue.text, System.currentTimeMillis())
             if (pdfFile != null) {
                 val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", pdfFile)
                 val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -200,8 +240,8 @@ fun AddEditNoteScreen(
                 val note = noteViewModel.getNoteById(existingNoteId)
                 if (note != null) {
                     existingNote = note
-                    title = note.title
-                    content = note.content
+                    titleValue = TextFieldValue(note.title)
+                    contentValue = TextFieldValue(note.content)
                     color = note.color
                     isPinned = note.isPinned
                     isTemplate = note.isTemplate
@@ -217,7 +257,7 @@ fun AddEditNoteScreen(
         }
     }
 
-    LaunchedEffect(title, content, selectedLabels) {
+    LaunchedEffect(titleValue.text, contentValue.text, selectedLabels) {
         if (!isInitialLoad) {
             triggerAutoSave()
         }
@@ -439,6 +479,15 @@ fun AddEditNoteScreen(
                     actionIconContentColor = iconColor
                 )
             )
+        },
+        bottomBar = {
+            if (!isPreviewMode) {
+                FormattingToolbar(
+                    onActionClick = { action ->
+                        applyFormatting(action)
+                    }
+                )
+            }
         }
     ) { padding ->
         if (isPreviewMode) {
@@ -449,9 +498,9 @@ fun AddEditNoteScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
-                if (title.isNotBlank()) {
+                if (titleValue.text.isNotBlank()) {
                     Text(
-                        text = title,
+                        text = titleValue.text,
                         style = MaterialTheme.typography.displaySmall,
                         color = textColor
                     )
@@ -494,12 +543,14 @@ fun AddEditNoteScreen(
                     }
                 }
                 
-                if (content.isNotBlank()) {
-                    Text(
-                        text = content,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = textColor
-                    )
+                if (contentValue.text.isNotBlank()) {
+                    SelectionContainer {
+                        Text(
+                            text = contentValue.text,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = textColor
+                        )
+                    }
                 }
             }
         } else {
@@ -532,15 +583,15 @@ fun AddEditNoteScreen(
 
                 item {
                     BasicTextField(
-                        value = title,
-                        onValueChange = { title = it },
+                        value = titleValue,
+                        onValueChange = { titleValue = it },
                         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                         textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         singleLine = true,
                         decorationBox = { innerTextField ->
                             Box {
-                                if (title.isEmpty()) {
+                                if (titleValue.text.isEmpty()) {
                                     Text(
                                         stringResource(R.string.title_hint),
                                         style = MaterialTheme.typography.displaySmall,
@@ -662,14 +713,14 @@ fun AddEditNoteScreen(
 
                 item {
                     BasicTextField(
-                        value = content,
-                        onValueChange = { content = it },
+                        value = contentValue,
+                        onValueChange = { contentValue = it },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         decorationBox = { innerTextField ->
                             Box {
-                                if (content.isEmpty()) {
+                                if (contentValue.text.isEmpty()) {
                                     Text(
                                         stringResource(R.string.content_hint),
                                         style = MaterialTheme.typography.bodyLarge,
