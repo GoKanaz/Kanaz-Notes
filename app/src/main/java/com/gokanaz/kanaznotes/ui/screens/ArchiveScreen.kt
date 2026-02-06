@@ -17,6 +17,8 @@ import androidx.navigation.NavHostController
 import com.gokanaz.kanaznotes.R
 import com.gokanaz.kanaznotes.data.local.NoteEntity
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
+import com.gokanaz.kanaznotes.ui.theme.getCardColor
+import com.gokanaz.kanaznotes.ui.theme.getTextColor
 import java.text.SimpleDateFormat
 import java.util.Date
 
