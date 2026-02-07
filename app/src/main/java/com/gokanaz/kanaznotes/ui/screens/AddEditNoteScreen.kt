@@ -14,15 +14,13 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -31,6 +29,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -78,8 +78,9 @@ fun AddEditNoteScreen(
     val scope = rememberCoroutineScope()
     val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
-    val listState = rememberLazyListState()
+    val scrollState = rememberScrollState()
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val focusRequester = remember { FocusRequester() }
 
     var title by remember { mutableStateOf("") }
     var contentTextField by remember { mutableStateOf(TextFieldValue("")) }
@@ -228,9 +229,8 @@ fun AddEditNoteScreen(
         triggerAutoSave()
         
         scope.launch {
-            delay(200)
+            delay(100)
             bringIntoViewRequester.bringIntoView()
-            listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
         }
     }
 
@@ -267,6 +267,11 @@ fun AddEditNoteScreen(
 
     LaunchedEffect(title, contentTextField.text, selectedLabels) {
         triggerAutoSave()
+    }
+
+    LaunchedEffect(contentTextField.text, contentTextField.selection) {
+        delay(50)
+        scrollState.animateScrollTo(scrollState.maxValue)
     }
 
     DisposableEffect(Unit) {
@@ -495,60 +500,56 @@ fun AddEditNoteScreen(
             }
         }
     ) { padding ->
-        LazyColumn(
-            state = listState,
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .imePadding(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 56.dp)
+                .imePadding()
+                .verticalScroll(scrollState)
+                .padding(16.dp)
         ) {
             if (selectedLabels.isNotEmpty()) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        selectedLabels.forEach { label ->
-                            AssistChip(
-                                onClick = {
-                                    selectedLabels = selectedLabels - label
-                                    triggerAutoSave()
-                                },
-                                label = { Text(label, style = MaterialTheme.typography.bodySmall) },
-                                trailingIcon = {
-                                    Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
-                                }
-                            )
-                        }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    selectedLabels.forEach { label ->
+                        AssistChip(
+                            onClick = {
+                                selectedLabels = selectedLabels - label
+                                triggerAutoSave()
+                            },
+                            label = { Text(label, style = MaterialTheme.typography.bodySmall) },
+                            trailingIcon = {
+                                Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
+                            }
+                        )
                     }
                 }
             }
 
-            item {
-                BasicTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                    textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    singleLine = true,
-                    decorationBox = { innerTextField ->
-                        Box {
-                            if (title.isEmpty()) {
-                                Text(
-                                    stringResource(R.string.title_hint),
-                                    style = MaterialTheme.typography.displaySmall,
-                                    color = textColor.copy(alpha = 0.4f)
-                                )
-                            }
-                            innerTextField()
+            BasicTextField(
+                value = title,
+                onValueChange = { title = it },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (title.isEmpty()) {
+                            Text(
+                                stringResource(R.string.title_hint),
+                                style = MaterialTheme.typography.displaySmall,
+                                color = textColor.copy(alpha = 0.4f)
+                            )
                         }
+                        innerTextField()
                     }
-                )
-            }
+                }
+            )
 
-            items(imageUris) { imagePath ->
+            imageUris.forEach { imagePath ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -605,8 +606,7 @@ fun AddEditNoteScreen(
                 }
             }
 
-            items(audioFiles.size) { index ->
-                val audioPath = audioFiles[index]
+            audioFiles.forEachIndexed { index, audioPath ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 ) {
@@ -649,39 +649,46 @@ fun AddEditNoteScreen(
                 }
             }
 
-            item {
-                BasicTextField(
-                    value = contentTextField,
-                    onValueChange = { contentTextField = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 200.dp)
-                        .bringIntoViewRequester(bringIntoViewRequester)
-                        .onFocusEvent { focusState ->
-                            if (focusState.isFocused) {
-                                scope.launch {
-                                    delay(200)
-                                    bringIntoViewRequester.bringIntoView()
-                                }
+            BasicTextField(
+                value = contentTextField,
+                onValueChange = { contentTextField = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 400.dp)
+                    .bringIntoViewRequester(bringIntoViewRequester)
+                    .focusRequester(focusRequester)
+                    .onFocusEvent { focusState ->
+                        if (focusState.isFocused) {
+                            scope.launch {
+                                delay(100)
+                                bringIntoViewRequester.bringIntoView()
                             }
-                        },
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    decorationBox = { innerTextField ->
-                        Box(modifier = Modifier.padding(bottom = 150.dp)) {
-                            if (contentTextField.text.isEmpty()) {
-                                Text(
-                                    stringResource(R.string.content_hint),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = textColor.copy(alpha = 0.4f)
-                                )
-                            }
-                            innerTextField()
                         }
+                    },
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (contentTextField.text.isEmpty()) {
+                            Text(
+                                stringResource(R.string.content_hint),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = textColor.copy(alpha = 0.4f)
+                            )
+                        }
+                        innerTextField()
                     }
-                )
-            }
+                }
+            )
+            
+            Spacer(modifier = Modifier.height(100.dp))
         }
+    }
+    
+    LaunchedEffect(Unit) {
+        delay(300)
+        focusRequester.requestFocus()
+        scrollState.scrollTo(scrollState.maxValue)
     }
 }
 
