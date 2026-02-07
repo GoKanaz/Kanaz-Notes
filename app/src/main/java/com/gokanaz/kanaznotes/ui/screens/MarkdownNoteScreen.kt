@@ -1,5 +1,6 @@
 package com.gokanaz.kanaznotes.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
@@ -26,7 +27,7 @@ import com.gokanaz.kanaznotes.data.local.NoteEntity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MarkdownNoteScreen(
     noteViewModel: NoteViewModel,
