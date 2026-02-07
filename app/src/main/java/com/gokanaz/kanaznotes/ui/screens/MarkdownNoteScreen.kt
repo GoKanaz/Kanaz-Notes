@@ -140,6 +140,10 @@ fun MarkdownNoteScreen(
                     onActionClick = { action ->
                         textValue = insertMarkdown(textValue, action)
                         saveNote()
+                        scope.launch {
+                            delay(100)
+                            bringIntoViewRequester.bringIntoView()
+                        }
                     }
                 )
             }
@@ -150,7 +154,6 @@ fun MarkdownNoteScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .imePadding()
-                .bringIntoViewRequester(bringIntoViewRequester)
         ) {
             if (!isPreviewMode) {
                 OutlinedTextField(
@@ -168,31 +171,39 @@ fun MarkdownNoteScreen(
                 )
             }
             
-            MarkdownEditor(
-                value = textValue,
-                onValueChange = { newValue ->
-                    if (newValue.text.length > textValue.text.length &&
-                        newValue.text.lastOrNull() == '\n'
-                    ) {
-                        textValue = handleEnterKey(textValue)
-                    } else {
-                        textValue = newValue
-                    }
-                    saveNote()
-                },
-                isPreviewMode = isPreviewMode,
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .onFocusEvent { focusState ->
-                        if (focusState.isFocused) {
-                            scope.launch {
-                                delay(300)
-                                bringIntoViewRequester.bringIntoView()
-                            }
+                    .fillMaxWidth()
+            ) {
+                MarkdownEditor(
+                    value = textValue,
+                    onValueChange = { newValue ->
+                        if (newValue.text.length > textValue.text.length &&
+                            newValue.text.lastOrNull() == '\n'
+                        ) {
+                            textValue = handleEnterKey(textValue)
+                        } else {
+                            textValue = newValue
                         }
+                        saveNote()
                     },
-                placeholder = "Start writing with Markdown..."
-            )
+                    isPreviewMode = isPreviewMode,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = if (!isPreviewMode) 56.dp else 0.dp)
+                        .bringIntoViewRequester(bringIntoViewRequester)
+                        .onFocusEvent { focusState ->
+                            if (focusState.isFocused) {
+                                scope.launch {
+                                    delay(300)
+                                    bringIntoViewRequester.bringIntoView()
+                                }
+                            }
+                        },
+                    placeholder = "Start writing with Markdown..."
+                )
+            }
         }
     }
 }

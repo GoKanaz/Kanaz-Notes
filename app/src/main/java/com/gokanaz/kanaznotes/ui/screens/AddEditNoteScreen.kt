@@ -228,8 +228,9 @@ fun AddEditNoteScreen(
         triggerAutoSave()
         
         scope.launch {
-            delay(100)
+            delay(200)
             bringIntoViewRequester.bringIntoView()
+            listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
         }
     }
 
@@ -266,11 +267,6 @@ fun AddEditNoteScreen(
 
     LaunchedEffect(title, contentTextField.text, selectedLabels) {
         triggerAutoSave()
-    }
-
-    LaunchedEffect(contentTextField.selection) {
-        delay(100)
-        bringIntoViewRequester.bringIntoView()
     }
 
     DisposableEffect(Unit) {
@@ -505,7 +501,7 @@ fun AddEditNoteScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp, bottom = 56.dp)
         ) {
             if (selectedLabels.isNotEmpty()) {
                 item {
@@ -660,12 +656,11 @@ fun AddEditNoteScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 200.dp)
-                        .padding(bottom = 300.dp)
                         .bringIntoViewRequester(bringIntoViewRequester)
                         .onFocusEvent { focusState ->
                             if (focusState.isFocused) {
                                 scope.launch {
-                                    delay(100)
+                                    delay(200)
                                     bringIntoViewRequester.bringIntoView()
                                 }
                             }
@@ -673,7 +668,7 @@ fun AddEditNoteScreen(
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
-                        Box {
+                        Box(modifier = Modifier.padding(bottom = 150.dp)) {
                             if (contentTextField.text.isEmpty()) {
                                 Text(
                                     stringResource(R.string.content_hint),
