@@ -482,7 +482,8 @@ fun AddEditNoteScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             if (selectedLabels.isNotEmpty()) {
                 item {
@@ -634,7 +635,10 @@ fun AddEditNoteScreen(
                 BasicTextField(
                     value = contentTextField,
                     onValueChange = { contentTextField = it },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 200.dp)
+                        .padding(bottom = 16.dp),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
