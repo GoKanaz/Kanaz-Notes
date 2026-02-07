@@ -1,6 +1,8 @@
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -10,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -20,6 +23,7 @@ import com.gokanaz.kanaznotes.ui.components.insertMarkdown
 import com.gokanaz.kanaznotes.ui.components.handleEnterKey
 import com.gokanaz.kanaznotes.ui.viewmodel.NoteViewModel
 import com.gokanaz.kanaznotes.data.local.NoteEntity
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,6 +35,7 @@ fun MarkdownNoteScreen(
 ) {
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
     
     var textValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
@@ -144,6 +149,7 @@ fun MarkdownNoteScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .imePadding()
+                .bringIntoViewRequester(bringIntoViewRequester)
         ) {
             if (!isPreviewMode) {
                 OutlinedTextField(
@@ -174,7 +180,16 @@ fun MarkdownNoteScreen(
                     saveNote()
                 },
                 isPreviewMode = isPreviewMode,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusEvent { focusState ->
+                        if (focusState.isFocused) {
+                            scope.launch {
+                                delay(300)
+                                bringIntoViewRequester.bringIntoView()
+                            }
+                        }
+                    },
                 placeholder = "Start writing with Markdown..."
             )
         }
