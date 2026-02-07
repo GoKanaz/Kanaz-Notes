@@ -226,6 +226,11 @@ fun AddEditNoteScreen(
         
         contentTextField = newTextField
         triggerAutoSave()
+        
+        scope.launch {
+            delay(100)
+            bringIntoViewRequester.bringIntoView()
+        }
     }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -261,6 +266,11 @@ fun AddEditNoteScreen(
 
     LaunchedEffect(title, contentTextField.text, selectedLabels) {
         triggerAutoSave()
+    }
+
+    LaunchedEffect(contentTextField.selection) {
+        delay(100)
+        bringIntoViewRequester.bringIntoView()
     }
 
     DisposableEffect(Unit) {
@@ -645,11 +655,12 @@ fun AddEditNoteScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 200.dp)
+                        .padding(bottom = 300.dp)
                         .bringIntoViewRequester(bringIntoViewRequester)
                         .onFocusEvent { focusState ->
                             if (focusState.isFocused) {
                                 scope.launch {
-                                    delay(300)
+                                    delay(100)
                                     bringIntoViewRequester.bringIntoView()
                                 }
                             }
