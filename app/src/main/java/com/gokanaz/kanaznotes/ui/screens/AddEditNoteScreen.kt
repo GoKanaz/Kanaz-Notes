@@ -16,6 +16,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +31,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
@@ -74,6 +78,8 @@ fun AddEditNoteScreen(
     val scope = rememberCoroutineScope()
     val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
+    val listState = rememberLazyListState()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
 
     var title by remember { mutableStateOf("") }
     var contentTextField by remember { mutableStateOf(TextFieldValue("")) }
@@ -479,12 +485,13 @@ fun AddEditNoteScreen(
         }
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding()
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 400.dp)
+            contentPadding = PaddingValues(bottom = 300.dp)
         ) {
             if (selectedLabels.isNotEmpty()) {
                 item {
@@ -636,7 +643,18 @@ fun AddEditNoteScreen(
                 BasicTextField(
                     value = contentTextField,
                     onValueChange = { contentTextField = it },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 200.dp)
+                        .bringIntoViewRequester(bringIntoViewRequester)
+                        .onFocusEvent { focusState ->
+                            if (focusState.isFocused) {
+                                scope.launch {
+                                    delay(300)
+                                    bringIntoViewRequester.bringIntoView()
+                                }
+                            }
+                        },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
