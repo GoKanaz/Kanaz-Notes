@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -74,6 +75,7 @@ fun AddEditNoteScreen(
     val scope = rememberCoroutineScope()
     val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
     var title by remember { mutableStateOf("") }
     var contentTextField by remember { mutableStateOf(TextFieldValue("")) }
@@ -478,58 +480,56 @@ fun AddEditNoteScreen(
             }
         }
     ) { padding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .imePadding()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp)
         ) {
             if (selectedLabels.isNotEmpty()) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        selectedLabels.forEach { label ->
-                            AssistChip(
-                                onClick = {
-                                    selectedLabels = selectedLabels - label
-                                    triggerAutoSave()
-                                },
-                                label = { Text(label, style = MaterialTheme.typography.bodySmall) },
-                                trailingIcon = {
-                                    Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
-                                }
-                            )
-                        }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    selectedLabels.forEach { label ->
+                        AssistChip(
+                            onClick = {
+                                selectedLabels = selectedLabels - label
+                                triggerAutoSave()
+                            },
+                            label = { Text(label, style = MaterialTheme.typography.bodySmall) },
+                            trailingIcon = {
+                                Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
+                            }
+                        )
                     }
                 }
             }
 
-            item {
-                BasicTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                    textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    singleLine = true,
-                    decorationBox = { innerTextField ->
-                        Box {
-                            if (title.isEmpty()) {
-                                Text(
-                                    stringResource(R.string.title_hint),
-                                    style = MaterialTheme.typography.displaySmall,
-                                    color = textColor.copy(alpha = 0.4f)
-                                )
-                            }
-                            innerTextField()
+            BasicTextField(
+                value = title,
+                onValueChange = { title = it },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                textStyle = MaterialTheme.typography.displaySmall.copy(color = textColor),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (title.isEmpty()) {
+                            Text(
+                                stringResource(R.string.title_hint),
+                                style = MaterialTheme.typography.displaySmall,
+                                color = textColor.copy(alpha = 0.4f)
+                            )
                         }
+                        innerTextField()
                     }
-                )
-            }
+                }
+            )
 
-            items(imageUris) { imagePath ->
+            imageUris.forEach { imagePath ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -586,8 +586,7 @@ fun AddEditNoteScreen(
                 }
             }
 
-            items(audioFiles.size) { index ->
-                val audioPath = audioFiles[index]
+            audioFiles.forEachIndexed { index, audioPath ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 ) {
@@ -630,27 +629,25 @@ fun AddEditNoteScreen(
                 }
             }
 
-            item {
-                BasicTextField(
-                    value = contentTextField,
-                    onValueChange = { contentTextField = it },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    decorationBox = { innerTextField ->
-                        Box {
-                            if (contentTextField.text.isEmpty()) {
-                                Text(
-                                    stringResource(R.string.content_hint),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = textColor.copy(alpha = 0.4f)
-                                )
-                            }
-                            innerTextField()
+            BasicTextField(
+                value = contentTextField,
+                onValueChange = { contentTextField = it },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (contentTextField.text.isEmpty()) {
+                            Text(
+                                stringResource(R.string.content_hint),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = textColor.copy(alpha = 0.4f)
+                            )
                         }
+                        innerTextField()
                     }
-                )
-            }
+                }
+            )
         }
     }
 }

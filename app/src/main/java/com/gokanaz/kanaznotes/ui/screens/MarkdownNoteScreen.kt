@@ -1,6 +1,8 @@
 package com.gokanaz.kanaznotes.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -28,6 +30,7 @@ fun MarkdownNoteScreen(
     noteId: Int? = null
 ) {
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
     
     var textValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
@@ -140,6 +143,7 @@ fun MarkdownNoteScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
         ) {
             if (!isPreviewMode) {
                 OutlinedTextField(
