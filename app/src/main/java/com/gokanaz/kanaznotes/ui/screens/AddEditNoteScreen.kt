@@ -14,8 +14,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -56,10 +53,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import android.graphics.BitmapFactory
-import java.io.File
 
 data class MarkdownAction(
-    val icon: ImageVector,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
     val label: String,
     val prefix: String,
     val suffix: String = ""
@@ -96,6 +92,7 @@ fun AddEditNoteScreen(
     var isRecording by remember { mutableStateOf(false) }
     var currentRecordingPath by remember { mutableStateOf<String?>(null) }
     var playingAudioIndex by remember { mutableStateOf<Int?>(null) }
+    var isInitialLoad by remember { mutableStateOf(true) }
 
     val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
 
@@ -228,10 +225,12 @@ fun AddEditNoteScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            val savedPath = ImageHelper.saveImageToInternalStorage(context, it)
-            if (savedPath != null) {
-                imageUris = imageUris + savedPath
-                saveNote()
+            scope.launch {
+                val savedPath = ImageHelper.saveImageToInternalStorage(context, it)
+                if (savedPath != null) {
+                    imageUris = imageUris + savedPath
+                    saveNote()
+                }
             }
         }
     }
@@ -250,10 +249,21 @@ fun AddEditNoteScreen(
                     selectedLabels = note.labels.split(",").filter { it.isNotBlank() }.toSet()
                     imageUris = note.images.split(",").filter { it.isNotBlank() }
                     audioFiles = note.audioFiles.split(",").filter { it.isNotBlank() }
-                    delay(100)
-                    scrollState.scrollTo(scrollState.maxValue)
+                    delay(300)
+                    scrollState.animateScrollTo(scrollState.maxValue)
                 }
             }
+        }
+    }
+
+    LaunchedEffect(contentTextField.text) {
+        if (contentTextField.text.isNotEmpty() && isInitialLoad) {
+            delay(300)
+            scrollState.animateScrollTo(scrollState.maxValue)
+            isInitialLoad = false
+        } else if (contentTextField.text.isNotEmpty()) {
+            delay(50)
+            scrollState.animateScrollTo(scrollState.maxValue)
         }
     }
 
@@ -261,11 +271,18 @@ fun AddEditNoteScreen(
         triggerAutoSave()
     }
 
-    LaunchedEffect(contentTextField.text) {
-        if (contentTextField.text.isNotEmpty()) {
-            delay(50)
-            scrollState.animateScrollTo(scrollState.maxValue)
+    LaunchedEffect(imageUris) {
+        if (imageUris.isNotEmpty()) {
+            triggerAutoSave()
         }
+    }
+
+    LaunchedEffect(isPinned) {
+        triggerAutoSave()
+    }
+
+    LaunchedEffect(isTemplate) {
+        triggerAutoSave()
     }
 
     DisposableEffect(Unit) {
@@ -366,12 +383,13 @@ fun AddEditNoteScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { shareNote() }) {
-                        Icon(Icons.Outlined.Share, stringResource(R.string.share), tint = iconColor)
-                    }
+                    // HAPUS IconButton share dari sini
                     IconButton(onClick = {
                         isPinned = !isPinned
-                        triggerAutoSave()
+                        scope.launch {
+                            delay(100)
+                            saveNote()
+                        }
                     }) {
                         Icon(if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null, tint = iconColor)
                     }
@@ -385,6 +403,15 @@ fun AddEditNoteScreen(
                         expanded = showMoreMenu,
                         onDismissRequest = { showMoreMenu = false }
                     ) {
+                        // PINDAHKAN share ke sini sebagai item pertama
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.share)) },
+                            onClick = {
+                                shareNote()
+                                showMoreMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Outlined.Share, null) }
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.add_images)) },
                             onClick = {
@@ -436,12 +463,15 @@ fun AddEditNoteScreen(
                             },
                             leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, null) }
                         )
-                        HorizontalDivider()
+                        // HAPUS HorizontalDivider() di sini
                         DropdownMenuItem(
                             text = { Text(if (isTemplate) stringResource(R.string.remove_from_template) else stringResource(R.string.save_as_template)) },
                             onClick = {
                                 isTemplate = !isTemplate
-                                triggerAutoSave()
+                                scope.launch {
+                                    delay(100)
+                                    saveNote()
+                                }
                                 showMoreMenu = false
                             },
                             leadingIcon = { Icon(Icons.Outlined.Description, null) }
