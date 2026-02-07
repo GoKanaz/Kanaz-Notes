@@ -16,6 +16,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,6 +75,7 @@ fun AddEditNoteScreen(
     val scope = rememberCoroutineScope()
     val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
+    val listState = rememberLazyListState()
 
     var title by remember { mutableStateOf("") }
     var contentTextField by remember { mutableStateOf(TextFieldValue("")) }
@@ -248,6 +250,8 @@ fun AddEditNoteScreen(
                     selectedLabels = note.labels.split(",").filter { it.isNotBlank() }.toSet()
                     imageUris = note.images.split(",").filter { it.isNotBlank() }
                     audioFiles = note.audioFiles.split(",").filter { it.isNotBlank() }
+                    delay(100)
+                    listState.scrollToItem(listState.layoutInfo.totalItemsCount)
                 }
             }
         }
@@ -255,6 +259,18 @@ fun AddEditNoteScreen(
 
     LaunchedEffect(title, contentTextField.text, selectedLabels) {
         triggerAutoSave()
+    }
+
+    LaunchedEffect(contentTextField.text.length) {
+        if (contentTextField.text.isNotEmpty()) {
+            scope.launch {
+                delay(50)
+                val lastIndex = listState.layoutInfo.totalItemsCount - 1
+                if (lastIndex >= 0) {
+                    listState.animateScrollToItem(lastIndex)
+                }
+            }
+        }
     }
 
     DisposableEffect(Unit) {
@@ -479,11 +495,12 @@ fun AddEditNoteScreen(
         }
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 80.dp)
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             if (selectedLabels.isNotEmpty()) {
                 item {
@@ -634,15 +651,16 @@ fun AddEditNoteScreen(
             item {
                 BasicTextField(
                     value = contentTextField,
-                    onValueChange = { contentTextField = it },
+                    onValueChange = { 
+                        contentTextField = it
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 200.dp)
-                        .padding(bottom = 16.dp),
+                        .heightIn(min = 200.dp),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
-                        Box {
+                        Box(modifier = Modifier.padding(bottom = 120.dp)) {
                             if (contentTextField.text.isEmpty()) {
                                 Text(
                                     stringResource(R.string.content_hint),
