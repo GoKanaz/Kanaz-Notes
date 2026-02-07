@@ -371,9 +371,6 @@ fun AddEditNoteScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { shareNote() }) {
-                        Icon(Icons.Outlined.Share, stringResource(R.string.share), tint = iconColor)
-                    }
                     IconButton(onClick = {
                         isPinned = !isPinned
                         triggerAutoSave()
@@ -390,6 +387,14 @@ fun AddEditNoteScreen(
                         expanded = showMoreMenu,
                         onDismissRequest = { showMoreMenu = false }
                     ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.share)) },
+                            onClick = {
+                                shareNote()
+                                showMoreMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Outlined.Share, null) }
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.add_images)) },
                             onClick = {
