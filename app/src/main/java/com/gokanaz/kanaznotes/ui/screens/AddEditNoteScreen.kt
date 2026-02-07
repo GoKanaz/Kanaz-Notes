@@ -491,7 +491,7 @@ fun AddEditNoteScreen(
                 .padding(padding)
                 .imePadding()
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 300.dp)
+            contentPadding = PaddingValues(8.dp)
         ) {
             if (selectedLabels.isNotEmpty()) {
                 item {
