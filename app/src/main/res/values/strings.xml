@@ -161,4 +161,5 @@
     <string name="template_removed_toast">Note removed from templates</string>
     <string name="archived_toast">Note moved to archive</string>
     <string name="deleted_toast">Note has been deleted</string>
+    <string name="move_to_trash_message">This note will be moved to trash.</string>
 </resources>

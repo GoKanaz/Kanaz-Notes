@@ -161,4 +161,5 @@
     <string name="template_removed_toast">Catatan dihapus dari template</string>
     <string name="archived_toast">Catatan dipindahkan ke arsip</string>
     <string name="deleted_toast">Catatan telah dihapus</string>
+    <string name="move_to_trash_message">Catatan ini akan dipindahkan ke tempat sampah.</string>
 </resources>

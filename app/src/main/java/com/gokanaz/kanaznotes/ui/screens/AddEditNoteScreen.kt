@@ -362,8 +362,8 @@ fun AddEditNoteScreen(
 
     ConfirmationDialog(
         showDialog = showTemplateDialog,
-        title = stringResource(if (isTemplate) R.string.remove_template_title else R.string.save_template_title),
-        message = stringResource(if (isTemplate) R.string.remove_template_message else R.string.save_template_message),
+        title = if (isTemplate) stringResource(R.string.remove_template_title) else stringResource(R.string.save_template_title),
+        message = if (isTemplate) stringResource(R.string.remove_template_message) else stringResource(R.string.save_template_message),
         confirmButtonText = stringResource(R.string.confirm),
         onDismiss = { showTemplateDialog = false },
         onConfirm = {
@@ -373,7 +373,7 @@ fun AddEditNoteScreen(
                 saveNote()
             }
             showTemplateDialog = false
-            toastMessage = stringResource(if (isTemplate) R.string.template_saved_toast else R.string.template_removed_toast)
+            toastMessage = if (isTemplate) stringResource(R.string.template_saved_toast) else stringResource(R.string.template_removed_toast)
         }
     )
 
