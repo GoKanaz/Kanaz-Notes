@@ -9,7 +9,6 @@
     <string name="search">Cari</string>
     <string name="back">Kembali</string>
     <string name="save">Simpan</string>
-    <string name="cancel">Batal</string>
     <string name="close">Tutup</string>
     <string name="delete">Hapus</string>
     
@@ -54,7 +53,6 @@
     <string name="delete_forever">Hapus Selamanya</string>
     <string name="delete_forever_message">Catatan ini akan dihapus secara permanen dan tidak dapat dipulihkan.</string>
     <string name="move_to_trash">Pindahkan ke Tempat Sampah</string>
-    <string name="move_to_trash_message">Catatan ini akan dipindahkan ke tempat sampah.</string>
     
     <string name="appearance">Tampilan</string>
     <string name="general">Umum</string>
