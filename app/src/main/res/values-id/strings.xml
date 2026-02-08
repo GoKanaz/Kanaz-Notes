@@ -44,8 +44,6 @@
     <string name="done">Selesai</string>
     <string name="image_not_loaded">Gambar tidak dapat dimuat</string>
     
-    <string name="archive_note">Arsip Catatan</string>
-    <string name="archive_message">Catatan ini akan dipindahkan ke arsip. Anda dapat memulihkannya nanti.</string>
     <string name="choose_color_title">Pilih Warna</string>
     <string name="use_template">Gunakan Template</string>
     <string name="use_template_message">Buat catatan baru dari template ini?</string>

@@ -45,7 +45,6 @@
     <string name="image_not_loaded">Image could not be loaded</string>
     
     <string name="archive_note">Archive Note</string>
-    <string name="archive_message">This note will be moved to archive. You can restore it later.</string>
     <string name="choose_color_title">Choose Color</string>
     <string name="use_template">Use Template</string>
     <string name="use_template_message">Create new note from this template?</string>
