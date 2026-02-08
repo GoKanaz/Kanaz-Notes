@@ -150,4 +150,19 @@
     <string name="play_audio">Putar Audio</string>
     <string name="delete_audio">Hapus Audio</string>
     <string name="share_note">Bagikan Catatan</string>
+    <string name="remove_template_title">Hapus dari Template?</string>
+    <string name="remove_template_message">Apakah Anda yakin ingin menghapus catatan ini dari template?</string>
+    <string name="save_template_title">Simpan sebagai Template?</string>
+    <string name="save_template_message">Apakah Anda yakin ingin menyimpan catatan ini sebagai template?</string>
+    <string name="archive_title">Arsipkan Catatan?</string>
+    <string name="archive_message">Catatan akan dipindahkan ke arsip dan tidak muncul di daftar utama.</string>
+    <string name="delete_title">Hapus Catatan?</string>
+    <string name="delete_message">Catatan akan dipindahkan ke tempat sampah. Anda dapat memulihkannya nanti.</string>
+    <string name="confirm">Konfirmasi</string>
+    <string name="cancel">Batal</string>
+    <string name="delete_button">Hapus</string>
+    <string name="template_saved_toast">Catatan berhasil disimpan sebagai template</string>
+    <string name="template_removed_toast">Catatan dihapus dari template</string>
+    <string name="archived_toast">Catatan dipindahkan ke arsip</string>
+    <string name="deleted_toast">Catatan telah dihapus</string>
 </resources>

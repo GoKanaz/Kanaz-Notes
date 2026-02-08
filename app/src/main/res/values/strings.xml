@@ -150,4 +150,19 @@
     <string name="play_audio">Play Audio</string>
     <string name="delete_audio">Delete Audio</string>
     <string name="share_note">Share Note</string>
+    <string name="remove_template_title">Remove from Template?</string>
+    <string name="remove_template_message">Are you sure you want to remove this note from templates?</string>
+    <string name="save_template_title">Save as Template?</string>
+    <string name="save_template_message">Are you sure you want to save this note as a template?</string>
+    <string name="archive_title">Archive Note?</string>
+    <string name="archive_message">The note will be moved to archive and will not appear in the main list.</string>
+    <string name="delete_title">Delete Note?</string>
+    <string name="delete_message">The note will be moved to trash. You can restore it later.</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_button">Delete</string>
+    <string name="template_saved_toast">Note successfully saved as template</string>
+    <string name="template_removed_toast">Note removed from templates</string>
+    <string name="archived_toast">Note moved to archive</string>
+    <string name="deleted_toast">Note has been deleted</string>
 </resources>

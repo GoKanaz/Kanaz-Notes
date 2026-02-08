@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -61,6 +62,44 @@ data class MarkdownAction(
     val suffix: String = ""
 )
 
+@Composable
+fun ConfirmationDialog(
+    showDialog: Boolean,
+    title: String,
+    message: String,
+    confirmButtonText: String = "Confirm",
+    isDestructive: Boolean = false,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(text = title) },
+            text = { Text(text = message) },
+            confirmButton = {
+                TextButton(
+                    onClick = onConfirm,
+                    colors = if (isDestructive) {
+                        ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    } else {
+                        ButtonDefaults.textButtonColors()
+                    }
+                ) {
+                    Text(confirmButtonText)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddEditNoteScreen(
@@ -86,6 +125,9 @@ fun AddEditNoteScreen(
     var showMoreMenu by remember { mutableStateOf(false) }
     var showLabelDialog by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
+    var showTemplateDialog by remember { mutableStateOf(false) }
+    var showArchiveDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var existingNote by remember { mutableStateOf<NoteEntity?>(null) }
     var autoSaveJob by remember { mutableStateOf<Job?>(null) }
     var isSaving by remember { mutableStateOf(false) }
@@ -93,6 +135,7 @@ fun AddEditNoteScreen(
     var currentRecordingPath by remember { mutableStateOf<String?>(null) }
     var playingAudioIndex by remember { mutableStateOf<Int?>(null) }
     var isInitialLoad by remember { mutableStateOf(true) }
+    var toastMessage by remember { mutableStateOf<String?>(null) }
 
     val allLabels by noteViewModel.allLabels.collectAsState(initial = emptyList())
 
@@ -261,9 +304,6 @@ fun AddEditNoteScreen(
             delay(300)
             scrollState.animateScrollTo(scrollState.maxValue)
             isInitialLoad = false
-        } else if (contentTextField.text.isNotEmpty()) {
-            delay(50)
-            scrollState.animateScrollTo(scrollState.maxValue)
         }
     }
 
@@ -283,6 +323,14 @@ fun AddEditNoteScreen(
 
     LaunchedEffect(isTemplate) {
         triggerAutoSave()
+    }
+
+    LaunchedEffect(toastMessage) {
+        if (toastMessage != null) {
+            Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
+            delay(3000)
+            toastMessage = null
+        }
     }
 
     DisposableEffect(Unit) {
@@ -311,6 +359,52 @@ fun AddEditNoteScreen(
             }
         )
     }
+
+    ConfirmationDialog(
+        showDialog = showTemplateDialog,
+        title = stringResource(if (isTemplate) R.string.remove_template_title else R.string.save_template_title),
+        message = stringResource(if (isTemplate) R.string.remove_template_message else R.string.save_template_message),
+        confirmButtonText = stringResource(R.string.confirm),
+        onDismiss = { showTemplateDialog = false },
+        onConfirm = {
+            isTemplate = !isTemplate
+            scope.launch {
+                delay(100)
+                saveNote()
+            }
+            showTemplateDialog = false
+            toastMessage = stringResource(if (isTemplate) R.string.template_saved_toast else R.string.template_removed_toast)
+        }
+    )
+
+    ConfirmationDialog(
+        showDialog = showArchiveDialog,
+        title = stringResource(R.string.archive_title),
+        message = stringResource(R.string.archive_message),
+        confirmButtonText = stringResource(R.string.confirm),
+        onDismiss = { showArchiveDialog = false },
+        onConfirm = {
+            existingNote?.let { noteViewModel.archiveNote(it) }
+            showArchiveDialog = false
+            navController.popBackStack()
+            toastMessage = stringResource(R.string.archived_toast)
+        }
+    )
+
+    ConfirmationDialog(
+        showDialog = showDeleteDialog,
+        title = stringResource(R.string.delete_title),
+        message = stringResource(R.string.delete_message),
+        confirmButtonText = stringResource(R.string.delete_button),
+        isDestructive = true,
+        onDismiss = { showDeleteDialog = false },
+        onConfirm = {
+            existingNote?.let { noteViewModel.moveToTrash(it) }
+            showDeleteDialog = false
+            navController.popBackStack()
+            toastMessage = stringResource(R.string.deleted_toast)
+        }
+    )
 
     if (showLabelDialog) {
         LabelDialog(
@@ -383,7 +477,6 @@ fun AddEditNoteScreen(
                     }
                 },
                 actions = {
-                    // HAPUS IconButton share dari sini
                     IconButton(onClick = {
                         isPinned = !isPinned
                         scope.launch {
@@ -403,7 +496,6 @@ fun AddEditNoteScreen(
                         expanded = showMoreMenu,
                         onDismissRequest = { showMoreMenu = false }
                     ) {
-                        // PINDAHKAN share ke sini sebagai item pertama
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.share)) },
                             onClick = {
@@ -463,15 +555,10 @@ fun AddEditNoteScreen(
                             },
                             leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, null) }
                         )
-                        // HAPUS HorizontalDivider() di sini
                         DropdownMenuItem(
                             text = { Text(if (isTemplate) stringResource(R.string.remove_from_template) else stringResource(R.string.save_as_template)) },
                             onClick = {
-                                isTemplate = !isTemplate
-                                scope.launch {
-                                    delay(100)
-                                    saveNote()
-                                }
+                                showTemplateDialog = true
                                 showMoreMenu = false
                             },
                             leadingIcon = { Icon(Icons.Outlined.Description, null) }
@@ -480,18 +567,16 @@ fun AddEditNoteScreen(
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.archive)) },
                                 onClick = {
-                                    existingNote?.let { noteViewModel.archiveNote(it) }
+                                    showArchiveDialog = true
                                     showMoreMenu = false
-                                    navController.popBackStack()
                                 },
                                 leadingIcon = { Icon(Icons.Outlined.Archive, null) }
                             )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.delete)) },
                                 onClick = {
-                                    existingNote?.let { noteViewModel.moveToTrash(it) }
+                                    showDeleteDialog = true
                                     showMoreMenu = false
-                                    navController.popBackStack()
                                 },
                                 leadingIcon = { Icon(Icons.Outlined.Delete, null) }
                             )
